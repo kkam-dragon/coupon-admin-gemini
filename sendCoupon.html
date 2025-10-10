@@ -34,8 +34,11 @@
                     <div id="clientRequester-feedback" class="form-text text-muted text-end"></div>
                 </div>
 
-                <div class="col-md-2"><label class="form-label">요청자 전화번호</label></div>
-                <div class="col-md-4"><input type="text" class="form-control" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '');"></div>
+                <div class="col-md-2"><label for="requesterPhone" class="form-label">요청자 전화번호</label></div>
+                <div class="col-md-4">
+                    <input type="text" id="requesterPhone" class="form-control" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+                    <div id="requesterPhone-feedback" class="form-text text-muted text-end"></div>
+                </div>
                 
                 <div class="col-md-2"><label for="requesterEmail" class="form-label">요청자 이메일</label></div>
                 <div class="col-md-4">
@@ -49,7 +52,10 @@
         <div class="card mb-4">
             <div class="row g-3 align-items-center">
                 <div class="col-md-2"><label for="eventName" class="form-label">이벤트명</label></div>
-                <div class="col-md-5"><input type="text" id="eventName" class="form-control" placeholder="이벤트명을 입력하세요 (50자 이내)" maxlength="50"></div>
+                <div class="col-md-5">
+                    <input type="text" id="eventName" class="form-control" placeholder="이벤트명을 입력하세요 (50자 이내)" maxlength="50">
+                    <div id="eventName-feedback" class="form-text text-muted text-end"></div>
+                </div>
                 <div class="col-md-2"><label for="dispatchDateTime" class="form-label">발송 예약일시</label></div>
                 <div class="col-md-3">
                     <div class="input-group" id="dispatchDateTime">
@@ -104,8 +110,11 @@
                             <div id="mmsContent-feedback" class="form-text text-muted text-end"></div>
                         </div>
 
-                        <div class="col-md-2"><label class="form-label">발신자 번호</label></div>
-                        <div class="col-md-10"><input type="text" class="form-control" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '');"></div>
+                        <div class="col-md-2"><label for="senderPhone" class="form-label">발신자 번호</label></div>
+                        <div class="col-md-10">
+                            <input type="text" id="senderPhone" class="form-control" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+                            <div id="senderPhone-feedback" class="form-text text-muted text-end"></div>
+                        </div>
 
                         <div class="col-md-2"><label class="form-label">배너 이미지 삽입(옵션)</label></div>
                         <div class="col-md-10"><input type="file" class="form-control"></div>

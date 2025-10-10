@@ -7,7 +7,70 @@ document.addEventListener('DOMContentLoaded', function() {
         time_24hr: true,
         locale: "ko"
     });
+
+    // 글자수 제한 필드 설정
+    const fieldsToTrack = [
+        { id: 'clientName', maxLength: 30 },
+        { id: 'salesManager', maxLength: 30 },
+        { id: 'clientRequester', maxLength: 30 },
+        { id: 'requesterPhone', maxLength: 11 },
+        { id: 'requesterEmail', maxLength: 30 },
+        { id: 'eventName', maxLength: 50 },
+        { id: 'mmsTitle', maxLength: 20 },
+        { id: 'mmsContent', maxLength: 200 },
+        { id: 'senderPhone', maxLength: 11 }
+    ];
+
+    fieldsToTrack.forEach(field => {
+        const inputElement = document.getElementById(field.id);
+        const feedbackElement = document.getElementById(`${field.id}-feedback`);
+        if (inputElement && feedbackElement) {
+            // 초기 글자수 표시
+            updateCharCount(inputElement, feedbackElement);
+            // 입력 시 글자수 업데이트
+            inputElement.addEventListener('input', () => updateCharCount(inputElement, feedbackElement));
+        }
+    });
+
+    // 이메일 유효성 검사
+    const emailInput = document.getElementById('requesterEmail');
+    if (emailInput) {
+        emailInput.addEventListener('input', validateEmail);
+    }
 });
+
+/**
+ * 입력 필드의 글자 수를 세어 피드백 요소에 표시하는 함수
+ * @param {HTMLInputElement|HTMLTextAreaElement} inputElement - 글자 수를 셀 입력 요소
+ * @param {HTMLElement} feedbackElement - 글자 수를 표시할 요소
+ */
+function updateCharCount(inputElement, feedbackElement) {
+    const currentLength = inputElement.value.length;
+    const maxLength = inputElement.maxLength;
+    feedbackElement.textContent = `${currentLength} / ${maxLength}`;
+}
+
+/**
+ * 이메일 입력 필드의 유효성을 검사하고 피드백을 표시하는 함수
+ */
+function validateEmail() {
+    const emailInput = document.getElementById('requesterEmail');
+    const feedbackElement = document.getElementById('requesterEmail-feedback');
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (emailRegex.test(emailInput.value)) {
+        feedbackElement.textContent = '유효한 이메일 형식입니다.';
+        feedbackElement.style.color = 'green';
+    } else if (emailInput.value === '') {
+        // 이메일 필드가 비어있을 때는 원래 글자수 카운터로 되돌림
+        updateCharCount(emailInput, feedbackElement);
+        feedbackElement.style.color = ''; // 기본 색상으로
+    } else {
+        feedbackElement.textContent = '유효하지 않은 이메일 형식입니다.';
+        feedbackElement.style.color = 'red';
+    }
+}
+
 
 // 가상의 상품 데이터
 const sampleProducts = [
