@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>쿠폰 발송</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5 mb-5">
+        <h2 class="mb-4">쿠폰 발송</h2>
+
+        <!-- 1. 기본 정보 조회 및 입력 -->
+        <div class="card mb-4">
+            <div class="card-title">1. 기본 정보 조회 및 입력</div>
+            <div class="row g-3 align-items-center">
+                <div class="col-md-2"><label for="clientName" class="form-label">고객사</label></div>
+                <div class="col-md-10">
+                    <input type="text" id="clientName" class="form-control" placeholder="고객사명을 입력하세요" maxlength="30">
+                    <div id="clientName-feedback" class="form-text text-muted text-end"></div>
+                </div>
+
+                <div class="col-md-2"><label for="salesManager" class="form-label">영업담당자</label></div>
+                <div class="col-md-4">
+                    <input type="text" id="salesManager" class="form-control" placeholder="담당자명을 입력하세요" maxlength="30">
+                    <div id="salesManager-feedback" class="form-text text-muted text-end"></div>
+                </div>
+                <div class="col-md-2"><label for="clientRequester" class="form-label">고객사 요청자</label></div>
+                <div class="col-md-4">
+                    <input type="text" id="clientRequester" class="form-control" placeholder="요청자명을 입력하세요" maxlength="30">
+                    <div id="clientRequester-feedback" class="form-text text-muted text-end"></div>
+                </div>
+
+                <div class="col-md-2"><label class="form-label">요청자 전화번호</label></div>
+                <div class="col-md-4"><input type="text" class="form-control" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '');"></div>
+                
+                <div class="col-md-2"><label for="requesterEmail" class="form-label">요청자 이메일</label></div>
+                <div class="col-md-4">
+                    <input type="email" id="requesterEmail" class="form-control" placeholder="이메일 주소를 입력하세요" maxlength="30">
+                    <div id="requesterEmail-feedback" class="form-text text-muted text-end"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 발송 정보 -->
+        <div class="card mb-4">
+            <div class="row g-3 align-items-center">
+                <div class="col-md-2"><label for="eventName" class="form-label">이벤트명</label></div>
+                <div class="col-md-5"><input type="text" id="eventName" class="form-control" placeholder="이벤트명을 입력하세요 (50자 이내)" maxlength="50"></div>
+                <div class="col-md-2"><label for="dispatchDateTime" class="form-label">발송 예약일시</label></div>
+                <div class="col-md-3">
+                    <div class="input-group" id="dispatchDateTime">
+                        <input type="text" class="form-control" placeholder="날짜 및 시간을 선택하세요" data-input>
+                        <span class="input-group-text" data-toggle>
+                            <i class="fa-regular fa-calendar-alt"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content 2-Column Layout -->
+        <div class="row">
+            <!-- Left Column -->
+            <div class="col-md-7">
+                <!-- 상품 정보 조회 -->
+                <div class="card mb-4">
+                    <div class="card-title">상품 정보 조회</div>
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-2"><label for="productName" class="form-label">상품명</label></div>
+                        <div class="col-md-10">
+                            <div class="input-group">
+                                <input type="text" id="productName" class="form-control">
+                                <button class="btn btn-outline-secondary" type="button" onclick="searchProduct()">검색</button>
+                            </div>
+                        </div>
+
+                        <div class="col-md-2"><label for="product-expiry" class="form-label">유효기간</label></div>
+                        <div class="col-md-4"><input type="text" id="product-expiry" class="form-control" readonly></div>
+                        <div class="col-md-2"><label for="product-price" class="form-label">매입/정상 단가</label></div>
+                        <div class="col-md-4"><input type="text" id="product-price" class="form-control" readonly></div>
+
+                        <div class="col-md-2"><label for="product-location" class="form-label">교환처</label></div>
+                        <div class="col-md-10"><input type="text" id="product-location" class="form-control" readonly></div>
+                    </div>
+                </div>
+
+                <!-- 발송항목 입력 -->
+                <div class="card mb-4">
+                    <div class="card-title">발송항목 입력</div>
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-2"><label for="mmsTitle" class="form-label">제목</label></div>
+                        <div class="col-md-10">
+                            <input type="text" id="mmsTitle" class="form-control" placeholder="메시지 제목을 입력하세요" maxlength="20">
+                            <div id="mmsTitle-feedback" class="form-text text-muted text-end"></div>
+                        </div>
+
+                        <div class="col-md-2"><label for="mmsContent" class="form-label">내용</label></div>
+                        <div class="col-md-10">
+                            <textarea id="mmsContent" class="form-control" rows="5" placeholder="메시지 내용을 입력하세요" maxlength="200"></textarea>
+                            <div id="mmsContent-feedback" class="form-text text-muted text-end"></div>
+                        </div>
+
+                        <div class="col-md-2"><label class="form-label">발신자 번호</label></div>
+                        <div class="col-md-10"><input type="text" class="form-control" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '');"></div>
+
+                        <div class="col-md-2"><label class="form-label">배너 이미지 삽입(옵션)</label></div>
+                        <div class="col-md-10"><input type="file" class="form-control"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="col-md-5">
+                <!-- MMS 이미지 미리보기 -->
+                <div class="card">
+                    <div class="card-title">MMS 이미지 미리보기</div>
+                    <div class="d-flex justify-content-center align-items-center" style="height: 400px; background-color: #f8f9fa;">
+                        <p class="text-muted">이미지 미리보기 영역</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/ko.js"></script>
+    <script src="js/main.js"></script>
+
+    <!-- Product Search Modal -->
+    <div class="modal fade" id="productSearchModal" tabindex="-1" aria-labelledby="productSearchModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="productSearchModalLabel">상품 검색</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>상품명</th>
+                                <th>교환처</th>
+                                <th>선택</th>
+                            </tr>
+                        </thead>
+                        <tbody id="product-list-table">
+                            <!-- Product list will be injected here by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
