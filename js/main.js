@@ -37,6 +37,19 @@ document.addEventListener('DOMContentLoaded', function() {
     if (emailInput) {
         emailInput.addEventListener('input', validateEmail);
     }
+
+    // 배너 이미지 사용 여부 체크박스 로직
+    const useBannerCheckbox = document.getElementById('useBannerImage');
+    const bannerImageInput = document.getElementById('bannerImage');
+
+    if (useBannerCheckbox && bannerImageInput) {
+        useBannerCheckbox.addEventListener('change', function() {
+            // 체크박스가 선택되면 파일 입력을 활성화하고, 그렇지 않으면 비활성화합니다.
+            bannerImageInput.disabled = !this.checked;
+        });
+    }
+
+
 });
 
 /**
