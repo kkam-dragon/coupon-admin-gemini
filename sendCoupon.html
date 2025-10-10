@@ -19,30 +19,30 @@
             <div class="row g-3 align-items-center">
                 <div class="col-md-2"><label for="clientName" class="form-label">고객사</label></div>
                 <div class="col-md-10">
-                    <input type="text" id="clientName" class="form-control" placeholder="고객사명을 입력하세요" maxlength="30">
+                    <input type="text" id="clientName" class="form-control" placeholder="고객사명을 입력하세요. (30자이내)" maxlength="30">
                     <div id="clientName-feedback" class="form-text text-muted text-end"></div>
                 </div>
 
                 <div class="col-md-2"><label for="salesManager" class="form-label">영업담당자</label></div>
                 <div class="col-md-4">
-                    <input type="text" id="salesManager" class="form-control" placeholder="담당자명을 입력하세요" maxlength="30">
+                    <input type="text" id="salesManager" class="form-control" placeholder="담당자명을 입력하세요. (30자이내)" maxlength="30">
                     <div id="salesManager-feedback" class="form-text text-muted text-end"></div>
                 </div>
                 <div class="col-md-2"><label for="clientRequester" class="form-label">고객사 요청자</label></div>
                 <div class="col-md-4">
-                    <input type="text" id="clientRequester" class="form-control" placeholder="요청자명을 입력하세요" maxlength="30">
+                    <input type="text" id="clientRequester" class="form-control" placeholder="요청자명을 입력하세요. (30자이내)" maxlength="30">
                     <div id="clientRequester-feedback" class="form-text text-muted text-end"></div>
                 </div>
 
                 <div class="col-md-2"><label for="requesterPhone" class="form-label">요청자 전화번호</label></div>
                 <div class="col-md-4">
-                    <input type="text" id="requesterPhone" class="form-control" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+                    <input type="text" id="requesterPhone" class="form-control" placeholder="숫자만 입력하세요. (11자이내)" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
                     <div id="requesterPhone-feedback" class="form-text text-muted text-end"></div>
                 </div>
                 
                 <div class="col-md-2"><label for="requesterEmail" class="form-label">요청자 이메일</label></div>
                 <div class="col-md-4">
-                    <input type="email" id="requesterEmail" class="form-control" placeholder="이메일 주소를 입력하세요" maxlength="30">
+                    <input type="email" id="requesterEmail" class="form-control" placeholder="이메일 주소를 입력하세요. (30자이내)" maxlength="30">
                     <div id="requesterEmail-feedback" class="form-text text-muted text-end"></div>
                 </div>
             </div>
@@ -100,19 +100,19 @@
                     <div class="row g-3 align-items-center">
                         <div class="col-md-2"><label for="mmsTitle" class="form-label">제목</label></div>
                         <div class="col-md-10">
-                            <input type="text" id="mmsTitle" class="form-control" placeholder="메시지 제목을 입력하세요" maxlength="20">
+                            <input type="text" id="mmsTitle" class="form-control" placeholder="메시지 제목을 입력하세요. (20자이내)" maxlength="20">
                             <div id="mmsTitle-feedback" class="form-text text-muted text-end"></div>
                         </div>
 
                         <div class="col-md-2"><label for="mmsContent" class="form-label">내용</label></div>
                         <div class="col-md-10">
-                            <textarea id="mmsContent" class="form-control" rows="5" placeholder="메시지 내용을 입력하세요" maxlength="200"></textarea>
+                            <textarea id="mmsContent" class="form-control" rows="5" placeholder="메시지 내용을 입력하세요. (200자이내)" maxlength="200"></textarea>
                             <div id="mmsContent-feedback" class="form-text text-muted text-end"></div>
                         </div>
 
                         <div class="col-md-2"><label for="senderPhone" class="form-label">발신자 번호</label></div>
                         <div class="col-md-10">
-                            <input type="text" id="senderPhone" class="form-control" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+                            <input type="text" id="senderPhone" class="form-control" placeholder="숫자만 입력하세요. (11자이내)" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
                             <div id="senderPhone-feedback" class="form-text text-muted text-end"></div>
                         </div>
 
