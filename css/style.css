@@ -99,3 +99,24 @@ h2 {
     max-height: 450px;
     overflow-y: auto;
 }
+
+/* 입력 유효성 검사 실패 시 흔들리는 애니메이션 */
+.is-invalid-shake {
+    animation: shake 0.5s;
+    border-color: #dc3545 !important; /* Bootstrap의 is-invalid 색상 */
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+/* 간편등록 입력창 높이 고정 및 스크롤 처리 */
+#recipientList {
+    height: 190px; /* 8줄에 해당하는 대략적인 높이 */
+    resize: none; /* 사용자가 크기를 조절하지 못하도록 설정 */
+}
+#recipientLineNumbers, #recipientValidation {
+    height: 190px;
+}
