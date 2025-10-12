@@ -31,10 +31,22 @@
             window.location.href = 'sendCoupon.html';
         }
 
-        document.getElementById('loginBtn').addEventListener('click', login);
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
+        const loginForm = document.getElementById('loginForm');
+        const loginBtn = document.getElementById('loginBtn');
+        const passwordInput = document.getElementById('password');
+
+        loginBtn.addEventListener('click', login);
+
+        loginForm.addEventListener('submit', function(e) {
             e.preventDefault();
             login();
+        });
+
+        // 비밀번호 입력창에서 Enter 키를 누르면 로그인 실행
+        passwordInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                login();
+            }
         });
     </script>
 </body>
