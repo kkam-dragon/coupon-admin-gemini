@@ -17,18 +17,18 @@
         <div class="card mb-4">
             <div class="card-title">1. 기본 정보 조회 및 입력</div>
             <div class="row g-3 align-items-center">
-                <div class="col-md-2"><label for="clientName" class="form-label">고객사</label></div>
+                <div class="col-md-2"><label for="clientName" class="form-label form-label-required">고객사</label></div>
                 <div class="col-md-10">
                     <input type="text" id="clientName" class="form-control" placeholder="고객사명을 입력하세요. (30자이내)" maxlength="30">
                     <div id="clientName-feedback" class="form-text text-muted text-end"></div>
                 </div>
 
-                <div class="col-md-2"><label for="salesManager" class="form-label">영업담당자</label></div>
+                <div class="col-md-2"><label for="salesManager" class="form-label form-label-required">영업담당자</label></div>
                 <div class="col-md-4">
                     <input type="text" id="salesManager" class="form-control" placeholder="담당자명을 입력하세요. (30자이내)" maxlength="30">
                     <div id="salesManager-feedback" class="form-text text-muted text-end"></div>
                 </div>
-                <div class="col-md-2"><label for="clientRequester" class="form-label">고객사 요청자</label></div>
+                <div class="col-md-2"><label for="clientRequester" class="form-label form-label-required">고객사 요청자</label></div>
                 <div class="col-md-4">
                     <input type="text" id="clientRequester" class="form-control" placeholder="요청자명을 입력하세요. (30자이내)" maxlength="30">
                     <div id="clientRequester-feedback" class="form-text text-muted text-end"></div>
@@ -40,7 +40,7 @@
                     <div id="requesterPhone-feedback" class="form-text text-muted text-end"></div>
                 </div>
                 
-                <div class="col-md-2"><label for="requesterEmail" class="form-label">요청자 이메일</label></div>
+                <div class="col-md-2"><label for="requesterEmail" class="form-label form-label-required">요청자 이메일</label></div>
                 <div class="col-md-4">
                     <input type="email" id="requesterEmail" class="form-control" placeholder="이메일 주소를 입력하세요. (30자이내)" maxlength="30">
                     <div id="requesterEmail-feedback" class="form-text text-muted text-end"></div>
@@ -51,12 +51,12 @@
         <!-- 발송 정보 -->
         <div class="card mb-4">
             <div class="row g-3 align-items-center">
-                <div class="col-md-2"><label for="eventName" class="form-label">이벤트명</label></div>
+                <div class="col-md-2"><label for="eventName" class="form-label form-label-required">이벤트명</label></div>
                 <div class="col-md-5">
                     <input type="text" id="eventName" class="form-control" placeholder="이벤트명을 입력하세요 (50자 이내)" maxlength="50">
                     <div id="eventName-feedback" class="form-text text-muted text-end"></div>
                 </div>
-                <div class="col-md-2"><label for="dispatchDateTime" class="form-label">발송 예약일시</label></div>
+                <div class="col-md-2"><label for="dispatchDateTime" class="form-label form-label-required">발송 예약일시</label></div>
                 <div class="col-md-3">
                     <div class="input-group" id="dispatchDateTime">
                         <input type="text" class="form-control" placeholder="날짜 및 시간을 선택하세요" data-input>
@@ -74,9 +74,9 @@
             <div class="col-md-7 d-flex flex-column">
                 <!-- 상품 정보 조회 -->
                 <div class="card mb-4">
-                    <div class="card-title">상품 정보 조회</div>
+                    <div class="card-title">2. 상품 정보 조회</div>
                     <div class="row g-3 align-items-center">
-                        <div class="col-md-2"><label for="productName" class="form-label">상품명</label></div>
+                        <div class="col-md-2"><label for="productName" class="form-label form-label-required">상품명</label></div>
                         <div class="col-md-10">
                             <div class="input-group">
                                 <input type="text" id="productName" class="form-control">
@@ -96,21 +96,21 @@
 
                 <!-- 발송항목 입력 -->
                 <div class="card mb-4 flex-grow-1">
-                    <div class="card-title">발송항목 입력</div>
+                    <div class="card-title">3. 발송항목 입력</div>
                     <div class="row g-3 align-items-center">
-                        <div class="col-md-2"><label for="mmsTitle" class="form-label">제목</label></div>
+                        <div class="col-md-2"><label for="mmsTitle" class="form-label form-label-required">제목</label></div>
                         <div class="col-md-10">
                             <input type="text" id="mmsTitle" class="form-control" placeholder="메시지 제목을 입력하세요. (20자이내)" maxlength="20">
                             <div id="mmsTitle-feedback" class="form-text text-muted text-end"></div>
                         </div>
 
-                        <div class="col-md-2"><label for="mmsContent" class="form-label">내용</label></div>
+                        <div class="col-md-2"><label for="mmsContent" class="form-label form-label-required">내용</label></div>
                         <div class="col-md-10">
                             <textarea id="mmsContent" class="form-control" rows="7" placeholder="메시지 내용을 입력하세요. (200자이내)" maxlength="200"></textarea>
                             <div id="mmsContent-feedback" class="form-text text-muted text-end"></div>
                         </div>
 
-                        <div class="col-md-2"><label for="senderPhone" class="form-label">발신자 번호</label></div>
+                        <div class="col-md-2"><label for="senderPhone" class="form-label form-label-required">발신자 번호</label></div>
                         <div class="col-md-10">
                             <input type="text" id="senderPhone" class="form-control" placeholder="숫자만 입력하세요. (11자이내)" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
                             <div id="senderPhone-feedback" class="form-text text-muted text-end"></div>
@@ -131,7 +131,7 @@
             <div class="col-md-5">
                 <!-- MMS 이미지 미리보기 -->
                 <div class="card">
-                    <div class="card-title">MMS 이미지 미리보기</div>
+                    <div class="card-title card-title-preview">MMS 이미지 미리보기</div>
                     <div class="d-flex justify-content-center align-items-center p-3" style="background-color: #f8f9fa; min-height: 450px;">
                         <img src="images/sample-mms.png" alt="MMS 미리보기" class="img-fluid" style="max-height: 400px; object-fit: contain; border: 1px solid #dee2e6;">
                     </div>
@@ -139,7 +139,7 @@
 
                 <!-- 수신자 정보 등록 -->
                 <div class="card mt-4">
-                    <div class="card-title">수신자 정보 등록</div>
+                    <div class="card-title card-title-required">4. 수신자 정보 등록</div>
                     <ul class="nav nav-tabs" id="recipient-tabs" role="tablist">
                         <li class="nav-item" role="presentation">
                             <button class="nav-link active" id="simple-reg-tab" data-bs-toggle="tab" data-bs-target="#simple-reg-panel" type="button" role="tab" aria-controls="simple-reg-panel" aria-selected="true">간편등록</button>

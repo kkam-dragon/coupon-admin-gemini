@@ -132,3 +132,22 @@ h2 {
 #recipient-tabs .nav-link {
     color: #4B5563; /* 기본 폼 라벨 색상 */
 }
+
+/* 필수 입력 항목 마크 스타일 */
+.form-label-required::after,
+.card-title-required::after {
+    content: ' *';
+    color: #EF4444; /* Tailwind's red-500 */
+}
+
+/* MMS 미리보기 제목 스타일 */
+.card-title-preview {
+    text-align: center;
+    border-bottom: none;
+    background-color: #4B5563; /* Tailwind's gray-600 */
+    color: #FFFFFF;
+    border-top-left-radius: 0.75rem;
+    border-top-right-radius: 0.75rem;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
