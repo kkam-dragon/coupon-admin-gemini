@@ -20,7 +20,7 @@
                 <input type="password" class="form-control" id="password" placeholder="비밀번호를 입력하세요">
             </div>
             <div class="d-grid">
-                <button type="button" class="btn btn-primary" onclick="login()">로그인</button>
+                <button type="button" class="btn btn-primary" id="loginBtn">로그인</button>
             </div>
         </form>
     </div>
@@ -30,6 +30,12 @@
             // 실제 인증 과정은 없으며, 페이지 이동만 처리합니다.
             window.location.href = 'sendCoupon.html';
         }
+
+        document.getElementById('loginBtn').addEventListener('click', login);
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            login();
+        });
     </script>
 </body>
 </html>

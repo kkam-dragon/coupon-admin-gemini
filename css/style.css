@@ -151,3 +151,39 @@ h2 {
     padding-top: 1rem;
     padding-bottom: 1rem;
 }
+
+/* Header Styling */
+.app-header {
+    background-color: #374151; /* Tailwind's gray-700 */
+    color: #FFFFFF;
+    padding: 1rem 0 0;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.app-header .header-top {
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #4B5563; /* Tailwind's gray-600 */
+}
+
+.app-header .main-title {
+    font-size: 1.5rem; /* 24px */
+    font-weight: 600;
+    margin: 0;
+}
+
+.app-header .header-nav {
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+}
+
+.app-header .header-nav .nav-link {
+    color: #D1D5DB; /* Tailwind's gray-300 */
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+}
+
+.app-header .header-nav .nav-link:hover,
+.app-header .header-nav .nav-link.active {
+    color: #FFFFFF;
+}

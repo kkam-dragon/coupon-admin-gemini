@@ -10,7 +10,10 @@
     <link href="css/style.css" rel="stylesheet">
 </head>
 <body>
-    <div class="container mt-5 mb-5">
+    <!-- Header will be injected here -->
+    <div id="header-placeholder"></div>
+
+    <div class="container mb-5">
         <h2 class="mb-4">쿠폰 발송</h2>
 
         <!-- 1. 기본 정보 조회 및 입력 -->
@@ -209,6 +212,31 @@
     <script src="https://npmcdn.com/flatpickr/dist/l10n/ko.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="js/main.js"></script>
+    <script>
+        function logout() {
+            if (confirm('로그아웃 하시겠습니까?')) { window.location.href = 'index.html'; }
+        }
+
+        // 헤더를 동적으로 로드하고 현재 페이지 메뉴를 활성화합니다.
+        document.addEventListener("DOMContentLoaded", function() {
+            fetch('partials/header.html')
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('header-placeholder').innerHTML = data;
+
+                    // 로그아웃 버튼에 이벤트 리스너 추가
+                    document.getElementById('logoutBtn').addEventListener('click', logout);
+
+                    // 현재 URL을 기반으로 활성 메뉴를 설정합니다.
+                    const currentPage = window.location.pathname.split("/").pop();
+                    if (currentPage === 'sendCoupon.html') {
+                        document.getElementById('nav-sendCoupon').classList.add('active');
+                    }
+                    // 다른 페이지에 대한 'else if' 조건을 여기에 추가할 수 있습니다.
+                })
+                .catch(error => console.error('Error loading header:', error));
+        });
+    </script>
 
     <!-- Product Search Modal -->
     <div class="modal fade" id="productSearchModal" tabindex="-1" aria-labelledby="productSearchModalLabel" aria-hidden="true">
