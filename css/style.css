@@ -123,9 +123,9 @@ h2 {
 
 /* 수신자 정보 등록 탭 활성화 스타일 */
 #recipient-tabs .nav-link.active {
-    background-color: #2563EB; /* 폼 포커스 시 사용된 파란색 */
-    color: #FFFFFF;
-    border-color: #2563EB #2563EB #FFFFFF;
+    color: #2563EB; /* 폼 포커스 시 사용된 파란색 */
+    background-color: transparent; /* 배경색 제거 */
+    border-bottom-color: #FFFFFF; /* 아래쪽 테두리를 투명하게 하여 라인과 연결된 느낌 제거 */
 }
 
 /* 비활성 탭 스타일 */
