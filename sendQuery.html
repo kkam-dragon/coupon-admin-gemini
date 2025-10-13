@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>발송조회</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link href="css/style.css" rel="stylesheet">
 </head>
 <body>
@@ -13,26 +15,396 @@
 
     <div class="container mb-5">
         <h2 class="mb-4">발송조회</h2>
+        
+        <!-- 조회 조건 -->
+        <div class="card mb-4">
+            <div class="card-title d-flex justify-content-between align-items-center">
+                <span>조회 조건</span>
+                <button type="button" class="btn btn-primary" id="searchBtn">조회</button>
+            </div>
+            <div class="row g-3 align-items-center justify-content-end">
+                <div class="col-md-auto"><label for="queryDateRange" class="form-label mb-0">발송일</label></div>
+                <div class="col-md-4">
+                    <div class="d-flex align-items-center">
+                        <div class="input-group" id="queryStartDateWrapper">
+                            <input type="text" class="form-control" placeholder="시작일" data-input>
+                            <span class="input-group-text" data-toggle>
+                                <i class="fa-regular fa-calendar-alt"></i>
+                            </span>
+                        </div>
+                        <span class="mx-2">~</span>
+                        <div class="input-group" id="queryEndDateWrapper">
+                            <input type="text" class="form-control" placeholder="종료일" data-input>
+                            <span class="input-group-text" data-toggle>
+                                <i class="fa-regular fa-calendar-alt"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-auto"><label for="queryClientName" class="form-label mb-0">고객사</label></div>
+                <div class="col-md-3">
+                    <div class="input-group">
+                        <input type="text" id="queryClientName" class="form-control" placeholder="고객사명을 입력하세요">
+                        <button class="btn btn-outline-secondary clear-input-btn" type="button" style="display: none;"><i class="fas fa-times"></i></button>
+                    </div>
+                </div>
+                <div class="col-md-auto"><label for="queryEventName" class="form-label mb-0">이벤트명</label></div>
+                <div class="col-md-3">
+                    <div class="input-group">
+                        <input type="text" id="queryEventName" class="form-control" placeholder="이벤트명을 입력하세요">
+                        <button class="btn btn-outline-secondary clear-input-btn" type="button" style="display: none;"><i class="fas fa-times"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 조회 결과 -->
         <div class="card">
-            <p>발송조회 페이지의 내용이 여기에 표시됩니다.</p>
+            <div class="card-title d-flex justify-content-between align-items-center">
+                <span>조회 결과</span>
+                <div class="d-flex align-items-center">
+                    <div class="input-group input-group-sm me-3" style="width: 200px;">
+                        <input type="text" id="tableSearchInput" class="form-control" placeholder="표 내부 검색...">
+                        <button class="btn btn-outline-secondary clear-input-btn" type="button" style="display: none;"><i class="fas fa-times"></i></button>
+                    </div>
+                    <span id="totalResults" class="fs-6 fw-normal text-nowrap">총 0건</span>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover text-center">
+                    <thead class="table-light">
+                        <tr>
+                            <th>No</th>
+                            <th class="no-wrap-text" data-sortable data-sort-key="dispatchDate">발송일시 <i class="sort-icon fas fa-sort"></i></th>
+                            <th class="col-client" data-sortable data-sort-key="client">고객사 <i class="sort-icon fas fa-sort"></i></th>
+                            <th class="col-event" data-sortable data-sort-key="event">이벤트명 <i class="sort-icon fas fa-sort"></i></th>
+                            <th class="col-product" data-sortable data-sort-key="productName">상품명 <i class="sort-icon fas fa-sort"></i></th>
+                            <th data-sortable data-sort-key="quantity">수량 <i class="sort-icon fas fa-sort"></i></th>
+                            <th data-sortable data-sort-key="unitPrice">정상단가 <i class="sort-icon fas fa-sort"></i></th>
+                            <th data-sortable data-sort-key="totalPrice">합계 <i class="sort-icon fas fa-sort"></i></th>
+                            <th data-sortable data-sort-key="status">발송상태 <i class="sort-icon fas fa-sort"></i></th>
+                            <th>상세보기</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsTableBody">
+                        <tr>
+                            <td colspan="10">조회된 결과가 없습니다.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- Loading Spinner -->
+            <div id="loadingSpinner" class="text-center my-3 d-none">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detail Modal -->
+    <div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="detailModalLabel">발송 상세 정보</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="detailModalTable">
+                            <!-- 상세 정보가 여기에 동적으로 채워집니다. -->
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/ko.js"></script>
     <script>
         function logout() {
             if (confirm('로그아웃 하시겠습니까?')) { window.location.href = 'index.html'; }
         }
 
         document.addEventListener("DOMContentLoaded", function() {
+            // 헤더 로드
             fetch('partials/header.html')
                 .then(response => response.text())
                 .then(data => {
                     document.getElementById('header-placeholder').innerHTML = data;
                     document.getElementById('logoutBtn').addEventListener('click', logout);
                     document.getElementById('nav-sendQuery').classList.add('active');
-                })
-                .catch(error => console.error('Error loading header:', error));
+                });
+
+            // 날짜 기본값 설정 (해당 월 1일 & 오늘)
+            const today = new Date();
+            const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+
+            // 시작일 선택기 초기화
+            const startDatePicker = flatpickr("#queryStartDateWrapper", {
+                wrap: true,
+                dateFormat: "Y-m-d",
+                locale: "ko",
+                defaultDate: firstDayOfMonth,
+                onChange: function(selectedDates, dateStr, instance) {
+                    // 종료일의 최소 날짜를 설정
+                    endDatePicker.set('minDate', dateStr);
+                }
+            });
+
+            // 종료일 선택기 초기화
+            const endDatePicker = flatpickr("#queryEndDateWrapper", {
+                wrap: true,
+                dateFormat: "Y-m-d",
+                locale: "ko",
+                defaultDate: today,
+                onChange: function(selectedDates, dateStr, instance) {
+                    // 시작일의 최대 날짜를 설정
+                    startDatePicker.set('maxDate', dateStr);
+                }
+            });
+
+            // 샘플 데이터 (DB 대체)
+            const allData = [
+                { no: 1, dispatchDate: "2024-06-05 10:00", client: "A고객사 (주)블루오션 마케팅", manager: "김영업", event: "2024년 상반기 신규가입 고객 대상 특별 프로모션 이벤트", orderId: "PO-202406-00123", productName: "스타벅스 부드러운 디저트(ICE)(아이스 카페 아메리카노 T 2잔 + 부드러운 생크림 카스텔라)", quantity: 1000, unitPrice: 4500, senderPhone: "1668-3551", status: "완료", couponNumber: "910116698170", expiryDate: "2025-12-24" },
+                { no: 2, dispatchDate: "2024-05-15 14:30", client: "B고객사", manager: "이대리", event: "가정의달 기념 온가족이 함께 즐기는 스페셜 패키지", orderId: "PO-202405-00098", productName: "BBQ 황금올리브치킨", quantity: 520, unitPrice: 20000, senderPhone: "1588-1234", status: "완료", couponNumber: "123456789012", expiryDate: "2024-08-15" },
+                { no: 3, dispatchDate: "2024-05-10 09:00", client: "C고객사", manager: "박과장", event: "출석체크 이벤트", orderId: "PO-202405-00080", productName: "GS25 5천원권", quantity: 500, unitPrice: 5000, senderPhone: "1668-3551", status: "완료", couponNumber: "234567890123", expiryDate: "2029-05-09" },
+                { no: 4, dispatchDate: "2024-04-28 18:00", client: "A고객사 (주)블루오션 마케팅", manager: "김영업", event: "구매고객 감사", orderId: "PO-202404-00111", productName: "신세계 상품권 1만원", quantity: 250, unitPrice: 10000, senderPhone: "1668-3551", status: "완료", couponNumber: "345678901234", expiryDate: "2029-04-27" },
+                { no: 5, dispatchDate: "2024-04-25 11:00", client: "D고객사", manager: "최팀장", event: "설문조사 이벤트", orderId: "PO-202404-00105", productName: "배스킨라빈스 파인트", quantity: 800, unitPrice: 8200, senderPhone: "1588-1234", status: "완료", couponNumber: "456789012345", expiryDate: "2024-07-25" },
+                { no: 6, dispatchDate: "2024-06-01 09:00", client: "B고객사", manager: "이대리", event: "6월 예약 발송", orderId: "PO-202406-00001", productName: "CGV 4DX 3D 주말 영화관람권 (1인)", quantity: 1200, unitPrice: 15000, senderPhone: "1588-1234", status: "예약", couponNumber: "567890123456", expiryDate: "2024-12-31" },
+                { no: 7, dispatchDate: "2024-06-04 11:20", client: "C고객사", manager: "박과장", event: "재구매 유도", orderId: "PO-202406-00150", productName: "요기요 5천원권", quantity: 300, unitPrice: 5000, senderPhone: "1668-3551", status: "완료", couponNumber: "678901234567", expiryDate: "2024-09-04" },
+                { no: 8, dispatchDate: "2024-06-03 17:00", client: "A고객사 (주)블루오션 마케팅", manager: "김영업", event: "플러스친구 추가", orderId: "PO-202406-00145", productName: "카카오 이모티콘", quantity: 2500, unitPrice: 2500, senderPhone: "1668-3551", status: "완료", couponNumber: "789012345678", expiryDate: "2025-06-03" },
+                { no: 9, dispatchDate: "2024-06-02 13:00", client: "E고객사", manager: "정사원", event: "신규 앱 설치", orderId: "PO-202406-00140", productName: "올리브영 1만원권", quantity: 750, unitPrice: 10000, senderPhone: "1588-1234", status: "완료", couponNumber: "890123456789", expiryDate: "2029-06-01" },
+                { no: 10, dispatchDate: "2024-06-01 10:00", client: "F고객사", manager: "최팀장", event: "오픈 1주년 기념", orderId: "PO-202406-00135", productName: "해피머니 1만원권", quantity: 1000, unitPrice: 10000, senderPhone: "1668-3551", status: "완료", couponNumber: "901234567890", expiryDate: "2029-05-31" },
+                { no: 11, dispatchDate: "2024-05-31 18:00", client: "A고객사 (주)블루오션 마케팅", manager: "김영업", event: "5월 마무리 세일", orderId: "PO-202405-00200", productName: "버거킹 와퍼세트", quantity: 400, unitPrice: 9100, senderPhone: "1668-3551", status: "완료", couponNumber: "012345678901", expiryDate: "2024-07-30" },
+                { no: 12, dispatchDate: "2024-05-30 15:00", client: "B고객사", manager: "이대리", event: "VIP 고객 대상", orderId: "PO-202405-00190", productName: "투썸플레이스 조각케익", quantity: 150, unitPrice: 6500, senderPhone: "1588-1234", status: "완료", couponNumber: "112233445566", expiryDate: "2024-07-29" },
+                { no: 13, dispatchDate: "2024-05-29 12:00", client: "G고객사", manager: "정사원", event: "리뷰 작성 이벤트", orderId: "PO-202405-00180", productName: "메가커피 아메리카노", quantity: 3000, unitPrice: 2000, senderPhone: "1668-3551", status: "완료", couponNumber: "223344556677", expiryDate: "2024-07-28" },
+                { no: 14, dispatchDate: "2024-05-28 09:30", client: "C고객사", manager: "박과장", event: "5월 출석체크 마감", orderId: "PO-202405-00170", productName: "GS25 1천원권", quantity: 1500, unitPrice: 1000, senderPhone: "1668-3551", status: "완료", couponNumber: "334455667788", expiryDate: "2029-05-27" },
+                { no: 15, dispatchDate: "2024-05-27 16:45", client: "H고객사", manager: "최팀장", event: "서비스 만족도 조사", orderId: "PO-202405-00160", productName: "CU 2천원권", quantity: 900, unitPrice: 2000, senderPhone: "1588-1234", status: "완료", couponNumber: "445566778899", expiryDate: "2024-07-26" },
+                { no: 16, dispatchDate: "2024-05-26 11:00", client: "A고객사 (주)블루오션 마케팅", manager: "김영업", event: "주말 깜짝 퀴즈", orderId: "PO-202405-00150", productName: "이디야커피 토피넛라떼", quantity: 600, unitPrice: 4200, senderPhone: "1668-3551", status: "완료", couponNumber: "556677889900", expiryDate: "2024-07-25" },
+                { no: 17, dispatchDate: "2024-05-25 14:00", client: "I고객사", manager: "정사원", event: "친구 추천 이벤트", orderId: "PO-202405-00140", productName: "설빙 인절미빙수", quantity: 200, unitPrice: 9900, senderPhone: "1588-1234", status: "완료", couponNumber: "667788990011", expiryDate: "2024-07-24" },
+                { no: 18, dispatchDate: "2024-05-24 10:00", client: "B고객사", manager: "이대리", event: "가정의달 마무리", orderId: "PO-202405-00130", productName: "파리바게뜨 5천원권", quantity: 700, unitPrice: 5000, senderPhone: "1588-1234", status: "완료", couponNumber: "778899001122", expiryDate: "2024-07-23" },
+                { no: 19, dispatchDate: "2024-05-23 19:00", client: "J고객사", manager: "박과장", event: "퇴근길 응원", orderId: "PO-202405-00120", productName: "던킨도너츠 6개팩", quantity: 350, unitPrice: 12000, senderPhone: "1668-3551", status: "완료", couponNumber: "889900112233", expiryDate: "2024-07-22" },
+                { no: 20, dispatchDate: "2024-05-22 15:30", client: "A고객사 (주)블루오션 마케팅", manager: "김영업", event: "수요 특가 알림", orderId: "PO-202405-00110", productName: "롯데리아 데리버거", quantity: 1200, unitPrice: 2500, senderPhone: "1668-3551", status: "완료", couponNumber: "990011223344", expiryDate: "2024-07-21" },
+                { no: 21, dispatchDate: "2024-05-21 13:10", client: "K고객사", manager: "최팀장", event: "론칭 기념", orderId: "PO-202405-00100", productName: "공차 블랙밀크티", quantity: 850, unitPrice: 4500, senderPhone: "1588-1234", status: "완료", couponNumber: "001122334455", expiryDate: "2024-07-20" },
+                { no: 22, dispatchDate: "2024-06-06 09:00", client: "B고객사", manager: "이대리", event: "현충일 예약", orderId: "PO-202406-00200", productName: "맘스터치 싸이버거세트", quantity: 500, unitPrice: 6900, senderPhone: "1588-1234", status: "예약", couponNumber: "121234345656", expiryDate: "2024-08-05" },
+                { no: 23, dispatchDate: "2024-06-07 09:00", client: "C고객사", manager: "박과장", event: "주말 예약", orderId: "PO-202406-00210", productName: "교촌치킨 허니콤보", quantity: 300, unitPrice: 23000, senderPhone: "1668-3551", status: "예약", couponNumber: "232345456767", expiryDate: "2024-08-06" },
+                { no: 24, dispatchDate: "2024-04-20 10:00", client: "L고객사", manager: "정사원", event: "지난 이벤트", orderId: "PO-202404-00050", productName: "BHC 뿌링클", quantity: 100, unitPrice: 21000, senderPhone: "1588-1234", status: "완료", couponNumber: "343456567878", expiryDate: "2024-06-19" },
+                { no: 25, dispatchDate: "2024-04-15 10:00", client: "A고객사 (주)블루오션 마케팅", manager: "김영업", event: "4월 출석체크", orderId: "PO-202404-00040", productName: "GS25 1천원권", quantity: 2000, unitPrice: 1000, senderPhone: "1668-3551", status: "완료", couponNumber: "454567678989", expiryDate: "2029-04-14" },
+            ];
+
+            const searchBtn = document.getElementById('searchBtn');
+            const tableBody = document.getElementById('resultsTableBody');
+            const totalResultsEl = document.getElementById('totalResults');
+            const queryClientNameEl = document.getElementById('queryClientName');
+            const queryEventNameEl = document.getElementById('queryEventName');
+            const tableSearchInput = document.getElementById('tableSearchInput');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const tableHeader = document.querySelector('#resultsTableBody').previousElementSibling;
+
+            let currentResults = []; // 필터링된 결과를 저장할 배열
+            let displayedResults = []; // 현재 화면에 보여지는 데이터
+            let sortState = { key: 'dispatchDate', direction: 'desc' }; // 기본 정렬 상태
+            const ROWS_PER_LOAD = 10;
+            let isLoading = false;
+
+            // 데이터를 테이블에 렌더링하는 함수
+            const renderTable = (data, append = false) => {
+                if (!append) {
+                    tableBody.innerHTML = '';
+                }
+
+                if (data.length > 0) {
+                    const rowsHtml = data.map((item, index) => {
+                        const totalPrice = item.quantity * item.unitPrice;
+                        const statusBadge = item.status === '완료' 
+                            ? '<span class="badge bg-success">완료</span>' 
+                            : '<span class="badge bg-warning text-dark">예약</span>';
+
+                        return `
+                            <tr>
+                                <td>${(tableBody.children.length) + index + 1}</td>
+                                <td>${item.dispatchDate}</td>
+                                <td class="truncate-text col-client" title="${item.client}">${item.client}</td>
+                                <td class="truncate-text col-event" title="${item.event}">${item.event}</td>
+                                <td class="truncate-text col-product" title="${item.productName}">${item.productName}</td>
+                                <td>${item.quantity.toLocaleString()}</td>
+                                <td>${item.unitPrice.toLocaleString()}</td>
+                                <td>${totalPrice.toLocaleString()}</td>
+                                <td>${statusBadge}</td>
+                                <td><button class="btn btn-sm btn-outline-secondary btn-view-detail" data-id="${item.no}">보기</button></td>
+                            </tr>
+                        `;
+                    }).join('');
+                    tableBody.innerHTML += rowsHtml;
+                } else if (!append) {
+                    tableBody.innerHTML = '<tr><td colspan="10">조회된 결과가 없습니다.</td></tr>';
+                }
+
+                // 총 건수는 필터링된 전체 데이터 기준
+                const totalCount = (tableSearchInput.value ? displayedResults : currentResults).length;
+                totalResultsEl.textContent = `총 ${totalCount}건`;
+            };
+
+            // 정렬 함수
+            const sortData = (data, key, direction) => {
+                return [...data].sort((a, b) => {
+                    let valA = a[key];
+                    let valB = b[key];
+
+                    // '합계' 컬럼은 동적으로 계산
+                    if (key === 'totalPrice') {
+                        valA = a.quantity * a.unitPrice;
+                        valB = b.quantity * b.unitPrice;
+                    }
+
+                    // 날짜 문자열 비교
+                    if (key === 'dispatchDate') {
+                        valA = new Date(valA);
+                        valB = new Date(valB);
+                    }
+
+                    if (valA < valB) return direction === 'asc' ? -1 : 1;
+                    if (valA > valB) return direction === 'asc' ? 1 : -1;
+                    return 0;
+                });
+            };
+
+            // 추가 데이터 로드 함수
+            const loadMoreData = () => {
+                // 현재 표시된 행의 수가 전체 결과 수보다 많거나 같으면 중단
+                if (isLoading || tableBody.children.length >= displayedResults.length) return;
+
+                isLoading = true;
+                loadingSpinner.classList.remove('d-none');
+
+                // 실제 네트워크 요청을 시뮬레이션하기 위해 setTimeout 사용
+                setTimeout(() => {
+                    const nextData = displayedResults.slice(tableBody.children.length, tableBody.children.length + ROWS_PER_LOAD);
+                    renderTable(nextData, true);
+                    
+                    isLoading = false;
+                    loadingSpinner.classList.add('d-none');
+                }, 300); // 0.3초 딜레이
+            };
+
+            // 조회 버튼 클릭 이벤트
+            searchBtn.addEventListener('click', function() {
+                // 조회 조건 값 가져오기
+                const startDate = startDatePicker.input.value;
+                const endDate = endDatePicker.input.value;
+                const clientName = queryClientNameEl.value.trim();
+                const eventName = queryEventNameEl.value.trim();
+                tableSearchInput.value = ''; // 메인 조회 시 내부 검색어 초기화
+
+                // 데이터 필터링
+                currentResults = allData.filter(item => {
+                    // 1. 날짜 필터링
+                    const itemDate = new Date(item.dispatchDate);
+                    // 종료일은 23:59:59까지 포함하도록 설정
+                    const endOfDay = new Date(endDate);
+                    endOfDay.setHours(23, 59, 59, 999);
+
+                    const isDateMatch = (!startDate || itemDate >= new Date(startDate)) && (!endDate || itemDate <= endOfDay);
+
+                    // 2. 고객사명 필터링 (포함 여부로 검색)
+                    const isClientMatch = !clientName || item.client.includes(clientName);
+
+                    // 3. 이벤트명 필터링 (포함 여부로 검색)
+                    const isEventMatch = !eventName || item.event.includes(eventName);
+
+                    return isDateMatch && isClientMatch && isEventMatch;
+                });
+
+                // 정렬 및 초기 렌더링
+                displayedResults = sortData(currentResults, sortState.key, sortState.direction);
+                renderTable(displayedResults.slice(0, ROWS_PER_LOAD));
+                updateSortIcons();
+            });
+
+            // 표 내부 검색 이벤트
+            tableSearchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const filtered = currentResults.filter(item => {
+                    // 모든 텍스트 기반 필드를 검색 대상으로 함
+                    return Object.values(item).some(value => 
+                        String(value).toLowerCase().includes(searchTerm)
+                    );
+                });
+                displayedResults = sortData(filtered, sortState.key, sortState.direction);
+                renderTable(displayedResults.slice(0, ROWS_PER_LOAD));
+            });
+
+            // 정렬 아이콘 업데이트 함수
+            const updateSortIcons = () => {
+                tableHeader.querySelectorAll('th[data-sortable]').forEach(th => {
+                    const icon = th.querySelector('.sort-icon');
+                    if (!icon) return;
+                    icon.className = 'sort-icon fas fa-sort'; // 기본 아이콘으로 리셋
+                    if (th.dataset.sortKey === sortState.key) {
+                        icon.className = sortState.direction === 'asc' 
+                            ? 'sort-icon fas fa-sort-up' 
+                            : 'sort-icon fas fa-sort-down';
+                    }
+                });
+            };
+
+            // 테이블 헤더 클릭 이벤트 (정렬)
+            tableHeader.addEventListener('click', (e) => {
+                const header = e.target.closest('th[data-sortable]');
+                if (!header) return;
+
+                const key = header.dataset.sortKey;
+                const direction = (sortState.key === key && sortState.direction === 'desc') ? 'asc' : 'desc';
+                
+                sortState = { key, direction };
+
+                // 정렬 후 다시 렌더링
+                displayedResults = sortData(displayedResults, sortState.key, sortState.direction);
+                renderTable(displayedResults.slice(0, ROWS_PER_LOAD));
+                updateSortIcons();
+            });
+
+            // 입력창 클리어 버튼 기능 초기화
+            const setupClearButton = (inputId) => {
+                const input = document.getElementById(inputId);
+                const clearBtn = input.nextElementSibling;
+
+                const toggleClearBtn = () => {
+                    clearBtn.style.display = input.value ? 'block' : 'none';
+                };
+
+                input.addEventListener('input', toggleClearBtn);
+                clearBtn.addEventListener('click', () => {
+                    input.value = '';
+                    toggleClearBtn();
+                    input.dispatchEvent(new Event('input', { bubbles: true })); // 검색 기능이 다시 실행되도록 input 이벤트 트리거
+                    input.focus();
+                });
+            };
+            setupClearButton('queryClientName');
+            setupClearButton('queryEventName');
+            setupClearButton('tableSearchInput');
+
+            // 입력창 클릭 시 전체 선택 기능 추가
+            const inputsToSelect = ['queryClientName', 'queryEventName', 'tableSearchInput'];
+            inputsToSelect.forEach(id => {
+                const input = document.getElementById(id);
+                if (input) {
+                    input.addEventListener('click', () => input.select());
+                }
+            });
+
+            // 스크롤 이벤트 (무한 스크롤)
+            window.addEventListener('scroll', () => {
+                // 스크롤이 페이지 하단에 거의 도달했고, 로딩 중이 아닐 때
+                if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 200 && !isLoading) {
+                    loadMoreData();
+                }
+            });
         });
     </script>
 </body>
