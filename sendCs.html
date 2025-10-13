@@ -5,16 +5,81 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>C/S</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link href="css/style.css" rel="stylesheet">
 </head>
 <body>
     <!-- Header will be injected here -->
     <div id="header-placeholder"></div>
 
-    <div class="container mb-5">
+    <div class="container-fluid mb-5 px-4">
         <h2 class="mb-4">C/S</h2>
+        
+        <!-- 조회 조건 -->
+        <div class="card mb-4">
+            <div class="card-title d-flex justify-content-between align-items-center">
+                <span>조회 조건</span>
+                <button type="button" class="btn btn-primary" id="searchBtn">조회</button>
+            </div>
+            <div class="row g-3 align-items-center justify-content-end">
+                <div class="col-md-auto"><label for="queryCouponNumber" class="form-label mb-0">쿠폰번호</label></div>
+                <div class="col-md-3">
+                    <div class="input-group">
+                        <input type="text" id="queryCouponNumber" class="form-control" placeholder="쿠폰번호를 입력하세요" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+                        <button class="btn btn-outline-secondary clear-input-btn" type="button" style="display: none;"><i class="fas fa-times"></i></button>
+                    </div>
+                </div>
+                <div class="col-md-auto"><label for="queryPhoneNumber" class="form-label mb-0">휴대폰 번호</label></div>
+                <div class="col-md-3">
+                    <div class="input-group">
+                        <input type="text" id="queryPhoneNumber" class="form-control" placeholder="휴대폰 번호를 입력하세요" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+                        <button class="btn btn-outline-secondary clear-input-btn" type="button" style="display: none;"><i class="fas fa-times"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 조회 결과 -->
         <div class="card">
-            <p>C/S 페이지의 내용이 여기에 표시됩니다.</p>
+            <div class="card-title d-flex justify-content-between align-items-center">
+                <span id="totalResults">조회 결과</span>
+                <div class="d-flex align-items-center">
+                    <div class="input-group input-group-sm me-3" style="width: 200px;">
+                        <input type="text" id="tableSearchInput" class="form-control" placeholder="표 내부 검색...">
+                        <button class="btn btn-outline-secondary clear-input-btn" type="button" style="display: none;"><i class="fas fa-times"></i></button>
+                    </div>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover text-center">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="col-no">No</th>
+                            <th class="col-cs-datetime" data-sortable data-sort-key="dispatchDate">발송일시 <i class="sort-icon fas fa-sort"></i></th>
+                            <th data-sortable data-sort-key="client">고객사 <i class="sort-icon fas fa-sort"></i></th>
+                            <th data-sortable data-sort-key="event">이벤트명 <i class="sort-icon fas fa-sort"></i></th>
+                            <th data-sortable data-sort-key="productName">상품명 <i class="sort-icon fas fa-sort"></i></th>
+                            <th class="col-cs-price">정상단가</th>
+                            <th data-sortable data-sort-key="expiryDate">유효기간 <i class="sort-icon fas fa-sort"></i></th>
+                            <th class="col-cs-status" data-sortable data-sort-key="exchangeStatus">교환상태 <i class="sort-icon fas fa-sort"></i></th>
+                            <th class="col-cs-phone">휴대폰번호</th>
+                            <th class="col-cs-coupon">쿠폰번호</th>
+                            <th class="col-cs-action">CS처리</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsTableBody">
+                        <tr>
+                            <td colspan="11">조회된 결과가 없습니다.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- Loading Spinner -->
+            <div id="loadingSpinner" class="text-center my-3 d-none">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -25,14 +90,262 @@
         }
 
         document.addEventListener("DOMContentLoaded", function() {
+            // 헤더 로드
             fetch('partials/header.html')
                 .then(response => response.text())
                 .then(data => {
                     document.getElementById('header-placeholder').innerHTML = data;
                     document.getElementById('logoutBtn').addEventListener('click', logout);
                     document.getElementById('nav-sendCs').classList.add('active');
-                })
-                .catch(error => console.error('Error loading header:', error));
+                });
+
+            // C/S 화면용 샘플 데이터
+            let allCsData = Array.from({ length: 50 }, (_, i) => {
+                const statusOptions = ['교환완료', '미교환'];
+                const clientOptions = ['A고객사', 'B고객사', 'C고객사'];
+                const eventOptions = ['신규가입 이벤트', '가정의달 이벤트', '출석체크 이벤트'];
+                const productOptions = ['스타벅스 아메리카노', 'BBQ 황금올리브치킨', 'GS25 5천원권'];
+                const date = new Date(2024, 5, 5 - i);
+
+                return {
+                    no: i + 1,
+                    dispatchDate: `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} 10:00`,
+                    client: clientOptions[i % clientOptions.length],
+                    event: eventOptions[i % eventOptions.length],
+                    productName: productOptions[i % productOptions.length],
+                    unitPrice: (i % 3 + 1) * 5000,
+                    // 3개 중 1개는 만료되도록 수정
+                    expiryDate: i % 3 === 0 
+                        ? new Date(new Date().setMonth(new Date().getMonth() - 2)).toISOString().split('T')[0] 
+                        : new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
+                    exchangeStatus: statusOptions[i % statusOptions.length],
+                    recipientPhone: `010-${String(1000 + i).padStart(4, '0')}-${String(5000 + i).padStart(4, '0')}`,
+                    couponNumber: (BigInt("910116698170") + BigInt(i)).toString(),
+                };
+            });
+
+            // '01096960524'로 조회될 20개의 추가 데이터 생성
+            const specialData = Array.from({ length: 20 }, (_, i) => {
+                const date = new Date(2024, 4, 20 - i); // 5월 20일부터 하루씩 이전 날짜
+                return {
+                    no: 51 + i,
+                    dispatchDate: `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} 11:00`,
+                    client: 'JMBizcon',
+                    event: 'Congratulations 이벤트',
+                    productName: '[스타벅스]부드러운 디저트(ICE)(아이스 카페 아메리카노 2잔+부드러운 생크림 카스텔라)',
+                    unitPrice: 13500,
+                    expiryDate: '2025-12-24',
+                    exchangeStatus: i % 2 === 0 ? '교환완료' : '미교환',
+                    recipientPhone: '010-9696-0524',
+                    couponNumber: (BigInt("910116698170") + BigInt(i)).toString(),
+                };
+            });
+            allCsData = allCsData.concat(specialData);
+
+            // '01096960524'로 조회될 만료된 데이터 10개 추가
+            const expiredData = Array.from({ length: 10 }, (_, i) => {
+                const date = new Date(2024, 3, 15 - i); // 4월 15일부터 하루씩 이전 날짜
+                return {
+                    no: 71 + i,
+                    dispatchDate: `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} 14:00`,
+                    client: 'JMBizcon',
+                    event: 'Past Congratulations 이벤트',
+                    productName: '[스타벅스]아이스 카페 아메리카노 T',
+                    unitPrice: 4500,
+                    expiryDate: new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString().split('T')[0], // 한 달 전 날짜로 만료시킴
+                    exchangeStatus: '미교환',
+                    recipientPhone: '010-9696-0524',
+                    couponNumber: (BigInt("910116700000") + BigInt(i)).toString(), // 다른 쿠폰 번호 대역
+                };
+            });
+            allCsData = allCsData.concat(expiredData);
+
+            const searchBtn = document.getElementById('searchBtn');
+            const tableBody = document.getElementById('resultsTableBody');
+            const totalResultsEl = document.getElementById('totalResults');
+            const queryCouponNumberEl = document.getElementById('queryCouponNumber');
+            const queryPhoneNumberEl = document.getElementById('queryPhoneNumber');
+            const tableSearchInput = document.getElementById('tableSearchInput');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const tableHeader = document.querySelector('#resultsTableBody').previousElementSibling;
+
+            let currentResults = [];
+            let displayedResults = [];
+            let sortState = { key: 'dispatchDate', direction: 'desc' };
+            const ROWS_PER_LOAD = 10;
+            let isLoading = false;
+
+            const renderTable = (data, append = false) => {
+                if (!append) tableBody.innerHTML = '';
+
+                if (data.length > 0) {
+                    const rowsHtml = data.map((item, index) => {
+                        let statusBadge;
+                        switch (item.exchangeStatus) {
+                            case '교환완료': statusBadge = '<span class="badge bg-success">교환완료</span>'; break;
+                            case '미교환': statusBadge = '<span class="badge bg-secondary">미교환</span>'; break;
+                            default: statusBadge = `<span class="badge bg-light text-dark">${item.exchangeStatus}</span>`; break;
+                        }
+
+                // 유효기간 만료 처리
+                const today = new Date();
+                today.setHours(0, 0, 0, 0); // 날짜만 비교하기 위해 시간 초기화
+                const expiryDate = new Date(item.expiryDate);
+                const isExpired = expiryDate < today;
+                let expiryDateHtml = item.expiryDate;
+                if (isExpired) {
+                    expiryDateHtml += '<span class="text-danger ms-1">(만료)</span>';
+                }
+
+                // CS 처리 버튼 비활성화 조건
+                const isCsDisabled = isExpired || item.exchangeStatus === '교환완료';
+                const buttonClass = isCsDisabled ? 'btn-outline-secondary' : 'btn-dark';
+                const disabledAttribute = isCsDisabled ? 'disabled' : '';
+
+                        return `
+                            <tr>
+                                <td class="col-no">${(tableBody.children.length) + index + 1}</td>
+                        <td class="col-cs-datetime">${item.dispatchDate}</td>
+                                <td class="truncate-text" title="${item.client}">${item.client}</td>
+                                <td class="truncate-text" title="${item.event}">${item.event}</td>
+                                <td class="truncate-text" title="${item.productName}">${item.productName}</td>
+                        <td class="col-cs-price">${item.unitPrice.toLocaleString()}</td>
+                        <td>${expiryDateHtml}</td>
+                        <td class="col-cs-status">${statusBadge}</td>
+                        <td class="col-cs-phone">${item.recipientPhone}</td>
+                        <td class="col-cs-coupon">${item.couponNumber}</td>
+                        <td class="col-cs-action">
+                                    <div class="btn-group" role="group">
+                                        <button class="btn btn-sm ${buttonClass}" onclick="alert('${item.couponNumber} 쿠폰을 재발송합니다.')" ${disabledAttribute}>재발송</button>
+                                        <button class="btn btn-sm ${buttonClass}" onclick="alert('${item.couponNumber} 쿠폰을 폐기합니다.')" ${disabledAttribute}>쿠폰폐기</button>
+                                        <button class="btn btn-sm ${buttonClass}" onclick="alert('${item.recipientPhone} 번호를 변경합니다.')" ${disabledAttribute}>번호변경</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+                    tableBody.innerHTML += rowsHtml;
+                } else if (!append) {
+                    tableBody.innerHTML = '<tr><td colspan="11">조회된 결과가 없습니다.</td></tr>';
+                }
+
+                const totalCount = displayedResults.length;
+                const currentDisplayCount = totalCount > 0 ? tableBody.children.length : 0;
+                totalResultsEl.textContent = `조회 결과 (${currentDisplayCount} / ${totalCount}건)`;
+            };
+
+            const sortData = (data, key, direction) => {
+                return [...data].sort((a, b) => {
+                    let valA = a[key];
+                    let valB = b[key];
+                    if (key === 'dispatchDate' || key === 'expiryDate') {
+                        valA = new Date(valA);
+                        valB = new Date(valB);
+                    }
+                    if (valA < valB) return direction === 'asc' ? -1 : 1;
+                    if (valA > valB) return direction === 'asc' ? 1 : -1;
+                    return 0;
+                });
+            };
+
+            const loadMoreData = () => {
+                if (isLoading || tableBody.children.length >= displayedResults.length) return;
+                isLoading = true;
+                loadingSpinner.classList.remove('d-none');
+                setTimeout(() => {
+                    const nextData = displayedResults.slice(tableBody.children.length, tableBody.children.length + ROWS_PER_LOAD);
+                    renderTable(nextData, true);
+                    isLoading = false;
+                    loadingSpinner.classList.add('d-none');
+                }, 300);
+            };
+
+            searchBtn.addEventListener('click', function() {
+                const couponNumber = queryCouponNumberEl.value.trim();
+                const phoneNumber = queryPhoneNumberEl.value.trim();
+                tableSearchInput.value = '';
+
+                currentResults = allCsData.filter(item => {
+                    const isCouponMatch = !couponNumber || item.couponNumber.includes(couponNumber);
+                    const isPhoneMatch = !phoneNumber || item.recipientPhone.replace(/-/g, '').includes(phoneNumber);
+                    return isCouponMatch && isPhoneMatch;
+                });
+
+                displayedResults = sortData(currentResults, sortState.key, sortState.direction);
+                renderTable(displayedResults.slice(0, ROWS_PER_LOAD));
+                updateSortIcons();
+            });
+
+            tableSearchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const filtered = currentResults.filter(item => {
+                    return item.client.toLowerCase().includes(searchTerm) ||
+                           item.event.toLowerCase().includes(searchTerm) ||
+                           item.productName.toLowerCase().includes(searchTerm) ||
+                           item.recipientPhone.includes(searchTerm) ||
+                           item.couponNumber.includes(searchTerm);
+                });
+                displayedResults = sortData(filtered, sortState.key, sortState.direction);
+                renderTable(displayedResults.slice(0, ROWS_PER_LOAD));
+            });
+
+            const updateSortIcons = () => {
+                tableHeader.querySelectorAll('th[data-sortable]').forEach(th => {
+                    const icon = th.querySelector('.sort-icon');
+                    if (!icon) return;
+                    icon.className = 'sort-icon fas fa-sort';
+                    if (th.dataset.sortKey === sortState.key) {
+                        icon.className = sortState.direction === 'asc' ? 'sort-icon fas fa-sort-up' : 'sort-icon fas fa-sort-down';
+                    }
+                });
+            };
+
+            tableHeader.addEventListener('click', (e) => {
+                const header = e.target.closest('th[data-sortable]');
+                if (!header) return;
+                const key = header.dataset.sortKey;
+                const direction = (sortState.key === key && sortState.direction === 'desc') ? 'asc' : 'desc';
+                sortState = { key, direction };
+                displayedResults = sortData(displayedResults, sortState.key, sortState.direction);
+                renderTable(displayedResults.slice(0, ROWS_PER_LOAD));
+                updateSortIcons();
+            });
+
+            window.addEventListener('scroll', () => {
+                if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 200 && !isLoading) {
+                    loadMoreData();
+                }
+            });
+
+            const setupClearButton = (inputId) => {
+                const input = document.getElementById(inputId);
+                const clearBtn = input.closest('.input-group').querySelector('.clear-input-btn');
+                if (!input || !clearBtn) return;
+                const toggleClearBtn = () => {
+                    clearBtn.style.display = input.value ? 'block' : 'none';
+                };
+                input.addEventListener('input', toggleClearBtn);
+                clearBtn.addEventListener('click', () => {
+                    input.value = '';
+                    toggleClearBtn();
+                    input.dispatchEvent(new Event('input', { bubbles: true }));
+                    input.focus();
+                });
+            };
+
+            const inputsToSelect = ['queryCouponNumber', 'queryPhoneNumber', 'tableSearchInput'];
+            inputsToSelect.forEach(id => {
+                const input = document.getElementById(id);
+                if (input) {
+                    input.addEventListener('click', () => input.select());
+                }
+            });
+
+            // 초기 화면 설정
+            totalResultsEl.textContent = '조회 결과 (0 / 0건)';
+            setupClearButton('queryCouponNumber');
+            setupClearButton('queryPhoneNumber');
+            setupClearButton('tableSearchInput');
         });
     </script>
 </body>
