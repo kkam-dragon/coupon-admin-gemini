@@ -302,9 +302,11 @@ th[data-sortable]:hover {
 
 /* C/S 테이블 컬럼 너비 조정 */
 .table .col-cs-datetime { width: 160px; }
+.table .col-cs-client { width: 200px; }
 .table .col-cs-price { width: 100px; }
 .table .col-cs-phone { width: 140px; }
 .table .col-cs-status { width: 100px; }
+.table .col-cs-expiry { width: 150px; }
 .table .col-cs-coupon { width: 150px; }
 .table .col-cs-action { 
     width: 240px; /* 버튼 3개가 들어갈 충분한 너비 */
@@ -314,4 +316,21 @@ th[data-sortable]:hover {
 /* C/S 처리 활성화 버튼에 테두리 추가 */
 .col-cs-action .btn-dark {
     border-color: #6c757d; /* Bootstrap의 secondary 색상보다 약간 밝은 회색 */
+}
+
+/* CS 처리 확인 모달 본문 스타일 */
+#csActionModal .modal-body .h5 {
+    font-weight: 400;
+    color: #4B5563; /* Tailwind's gray-600 */
+}
+
+/* 테이블 헤더 고정(Sticky Header)을 위한 스타일 */
+.table-sticky-container {
+    height: 65vh; /* 테이블 전체의 높이를 지정 */
+    overflow-y: auto; /* 컨테이너에 세로 스크롤 생성 */
+}
+
+.sticky-header th {
+    position: sticky;
+    top: 0;
 }

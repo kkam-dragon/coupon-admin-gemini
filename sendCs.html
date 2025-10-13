@@ -56,11 +56,11 @@
                         <tr>
                             <th class="col-no">No</th>
                             <th class="col-cs-datetime" data-sortable data-sort-key="dispatchDate">발송일시 <i class="sort-icon fas fa-sort"></i></th>
-                            <th data-sortable data-sort-key="client">고객사 <i class="sort-icon fas fa-sort"></i></th>
+                            <th class="col-cs-client" data-sortable data-sort-key="client">고객사 <i class="sort-icon fas fa-sort"></i></th>
                             <th data-sortable data-sort-key="event">이벤트명 <i class="sort-icon fas fa-sort"></i></th>
                             <th data-sortable data-sort-key="productName">상품명 <i class="sort-icon fas fa-sort"></i></th>
                             <th class="col-cs-price">정상단가</th>
-                            <th data-sortable data-sort-key="expiryDate">유효기간 <i class="sort-icon fas fa-sort"></i></th>
+                            <th class="col-cs-expiry" data-sortable data-sort-key="expiryDate">유효기간 <i class="sort-icon fas fa-sort"></i></th>
                             <th class="col-cs-status" data-sortable data-sort-key="exchangeStatus">교환상태 <i class="sort-icon fas fa-sort"></i></th>
                             <th class="col-cs-phone">휴대폰번호</th>
                             <th class="col-cs-coupon">쿠폰번호</th>
@@ -78,6 +78,37 @@
             <div id="loadingSpinner" class="text-center my-3 d-none">
                 <div class="spinner-border text-primary" role="status">
                     <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CS Action Confirmation Modal -->
+    <div class="modal fade" id="csActionModal" tabindex="-1" aria-labelledby="csActionModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="csActionModalLabel"></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center py-4">
+                    <p class="h5" id="csActionModalBody"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                    <button type="button" class="btn btn-primary" id="csActionConfirmBtn">확인</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Alert Modal -->
+    <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-sm modal-dialog-centered">
+            <div class="modal-content border-0" style="background-color: rgba(0,0,0,0.7);">
+                 <div class="modal-body text-center py-4 text-white">
+                    <i class="fas fa-check-circle fa-3x mb-3"></i>
+                    <p class="h5" id="successModalBody"></p>
                 </div>
             </div>
         </div>
@@ -130,8 +161,8 @@
                 return {
                     no: 51 + i,
                     dispatchDate: `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} 11:00`,
-                    client: 'JMBizcon',
-                    event: 'Congratulations 이벤트',
+                    client: '제이엠비즈콘_스페셜이벤트_고객사하나둘', // 20자
+                    event: 'Congratulations 이벤트_이벤트하나둘셋넷',
                     productName: '[스타벅스]부드러운 디저트(ICE)(아이스 카페 아메리카노 2잔+부드러운 생크림 카스텔라)',
                     unitPrice: 13500,
                     expiryDate: '2025-12-24',
@@ -148,7 +179,7 @@
                 return {
                     no: 71 + i,
                     dispatchDate: `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} 14:00`,
-                    client: 'JMBizcon',
+                    client: '제이엠비즈콘_스페셜이벤트_고객사하나둘', // 20자
                     event: 'Past Congratulations 이벤트',
                     productName: '[스타벅스]아이스 카페 아메리카노 T',
                     unitPrice: 4500,
@@ -205,19 +236,19 @@
                         return `
                             <tr>
                                 <td class="col-no">${(tableBody.children.length) + index + 1}</td>
-                        <td class="col-cs-datetime">${item.dispatchDate}</td>
-                                <td class="truncate-text" title="${item.client}">${item.client}</td>
+                                <td class="col-cs-datetime">${item.dispatchDate}</td>
+                                <td class="truncate-text col-cs-client" title="${item.client}">${item.client}</td>
                                 <td class="truncate-text" title="${item.event}">${item.event}</td>
                                 <td class="truncate-text" title="${item.productName}">${item.productName}</td>
                         <td class="col-cs-price">${item.unitPrice.toLocaleString()}</td>
-                        <td>${expiryDateHtml}</td>
+                        <td class="col-cs-expiry">${expiryDateHtml}</td>
                         <td class="col-cs-status">${statusBadge}</td>
-                        <td class="col-cs-phone">${item.recipientPhone}</td>
-                        <td class="col-cs-coupon">${item.couponNumber}</td>
+                        <td class="col-cs-phone" title="${item.recipientPhone}">***-****-${item.recipientPhone.slice(-4)}</td>
+                        <td class="col-cs-coupon" title="${item.couponNumber}">${item.couponNumber.slice(0, -6)}******</td>
                         <td class="col-cs-action">
                                     <div class="btn-group" role="group">
-                                        <button class="btn btn-sm ${buttonClass}" onclick="alert('${item.couponNumber} 쿠폰을 재발송합니다.')" ${disabledAttribute}>재발송</button>
-                                        <button class="btn btn-sm ${buttonClass}" onclick="alert('${item.couponNumber} 쿠폰을 폐기합니다.')" ${disabledAttribute}>쿠폰폐기</button>
+                                        <button class="btn btn-sm ${buttonClass}" onclick="showCsConfirmModal('재발송', '${item.couponNumber} 쿠폰을 재발송 하시겠습니까?', () => showSuccessModal('재발송 처리되었습니다.'))" ${disabledAttribute}>재발송</button>
+                                        <button class="btn btn-sm ${buttonClass}" onclick="showCsConfirmModal('쿠폰폐기', '${item.couponNumber} 쿠폰을 폐기 하시겠습니까?', () => showSuccessModal('쿠폰이 폐기되었습니다.'))" ${disabledAttribute}>쿠폰폐기</button>
                                         <button class="btn btn-sm ${buttonClass}" onclick="alert('${item.recipientPhone} 번호를 변경합니다.')" ${disabledAttribute}>번호변경</button>
                                     </div>
                                 </td>
@@ -346,6 +377,39 @@
             setupClearButton('queryCouponNumber');
             setupClearButton('queryPhoneNumber');
             setupClearButton('tableSearchInput');
+
+            // CS 처리 모달 관련 로직
+            const csActionModalEl = document.getElementById('csActionModal');
+            const csActionModal = new bootstrap.Modal(csActionModalEl);
+            const csActionModalLabel = document.getElementById('csActionModalLabel');
+            const csActionModalBody = document.getElementById('csActionModalBody');
+            const csActionConfirmBtn = document.getElementById('csActionConfirmBtn');
+
+            const successModalEl = document.getElementById('successModal');
+            const successModal = new bootstrap.Modal(successModalEl);
+            const successModalBody = document.getElementById('successModalBody');
+
+            let confirmCallback = null;
+
+            window.showCsConfirmModal = (title, message, onConfirm) => {
+                csActionModalLabel.textContent = title;
+                csActionModalBody.textContent = message;
+                confirmCallback = onConfirm;
+                csActionModal.show();
+            };
+
+            csActionConfirmBtn.addEventListener('click', () => {
+                if (typeof confirmCallback === 'function') {
+                    confirmCallback();
+                }
+                csActionModal.hide();
+            });
+
+            window.showSuccessModal = (message) => {
+                successModalBody.textContent = message;
+                successModal.show();
+                setTimeout(() => successModal.hide(), 1500); // 1.5초 후 자동으로 닫힘
+            };
         });
     </script>
 </body>
