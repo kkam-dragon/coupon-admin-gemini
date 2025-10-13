@@ -279,7 +279,8 @@
 
                 // 총 건수는 필터링된 전체 데이터 기준
                 const totalCount = displayedResults.length;
-                totalResultsEl.textContent = `조회 결과 (${tableBody.children.length} / ${totalCount}건)`;
+                const currentDisplayCount = totalCount > 0 ? tableBody.children.length : 0;
+                totalResultsEl.textContent = `조회 결과 (${currentDisplayCount} / ${totalCount}건)`;
             };
 
             // 정렬 함수
