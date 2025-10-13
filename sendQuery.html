@@ -434,8 +434,8 @@
                             <td class="truncate-text col-modal-orderid" title="${masterData.orderId}">${masterData.orderId}</td>
                             <td class="truncate-text col-modal-product" title="${masterData.productName}">${masterData.productName}</td>
                             <td class="col-modal-price">${masterData.unitPrice.toLocaleString()}</td>
-                            <td class="col-modal-sender">${masterData.senderPhone}</td>
-                            <td class="col-modal-recipient" title="${item.recipient}">${item.recipient.slice(0, -4)}****</td>
+                            <td class="no-wrap-text col-modal-sender">${masterData.senderPhone}</td>
+                            <td class="no-wrap-text col-modal-recipient" title="${item.recipient}">***-****-${item.recipient.slice(-4)}</td>
                             <td class="col-modal-status">${masterData.status}</td>
                             <td class="truncate-text col-modal-coupon" title="${item.coupon}">${item.coupon.slice(0, -6)}******</td>
                             <td class="truncate-text col-modal-expiry" title="${masterData.expiryDate}">${masterData.expiryDate}</td>
