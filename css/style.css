@@ -323,14 +323,3 @@ th[data-sortable]:hover {
     font-weight: 400;
     color: #4B5563; /* Tailwind's gray-600 */
 }
-
-/* 테이블 헤더 고정(Sticky Header)을 위한 스타일 */
-.table-sticky-container {
-    height: 65vh; /* 테이블 전체의 높이를 지정 */
-    overflow-y: auto; /* 컨테이너에 세로 스크롤 생성 */
-}
-
-.sticky-header th {
-    position: sticky;
-    top: 0;
-}
