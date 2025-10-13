@@ -536,7 +536,6 @@ function validateEmail() {
     }
 }
 
-
 // 가상의 상품 데이터
 const sampleProducts = [
     { name: "불고기 버거 세트", expiry: "60일", price: "5,000 / 7,000원", location: "전국 모든 매장" },
@@ -602,4 +601,81 @@ function selectProduct(index) {
     if (productModal) {
         productModal.hide();
     }
+}
+
+// 페이지를 떠나기 전 변경사항 확인
+let allowNavigation = false; // 페이지 이동을 허용할지 여부
+
+window.addEventListener('beforeunload', function (e) {
+    // isSendCouponFormDirty 함수가 존재하고, 폼에 내용이 있으며, 이동이 허용되지 않은 경우
+    if (typeof isSendCouponFormDirty === 'function' && isSendCouponFormDirty() && !allowNavigation) {
+        e.preventDefault(); // 표준에 따라 필요
+        e.returnValue = ''; // Chrome에서 경고창을 띄우기 위해 필요
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    // 모든 a 태그에 클릭 이벤트 리스너 추가
+    document.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', function(e) {
+            // isSendCouponFormDirty 함수가 존재하고, 폼에 내용이 있으며, 클릭된 링크가 로그아웃 버튼이 아닐 경우
+            if (typeof isSendCouponFormDirty === 'function' && isSendCouponFormDirty()) {
+                e.preventDefault(); // 기본 링크 이동 방지
+                const targetUrl = this.href;
+                showUnsavedChangesModal(() => {
+                    allowNavigation = true; // 이동 허용
+                    window.location.href = targetUrl; // '확인' 클릭 시 이동
+                });
+            }
+        });
+    });
+
+    // '취소' 버튼 클릭 이벤트
+    const cancelBtn = document.getElementById('cancelBtn');
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', (e) => {
+            e.preventDefault(); // a 태그처럼 기본 동작을 막음
+            if (isSendCouponFormDirty()) {
+                showUnsavedChangesModal(() => {
+                    allowNavigation = true;
+                    location.reload();
+                });
+            } else {
+                location.reload();
+            }
+        });
+    }
+});
+
+/**
+ * 미저장 변경사항 확인 모달을 띄우는 함수
+ * @param {function} onConfirm - '확인' 버튼을 눌렀을 때 실행될 콜백 함수
+ */
+function showUnsavedChangesModal(onConfirm) {
+    const modalEl = document.getElementById('unsavedChangesModal');
+    if (!modalEl) return;
+
+    const unsavedChangesModal = new bootstrap.Modal(modalEl);
+    const confirmBtn = document.getElementById('confirmNavigateBtn');
+    
+    const newConfirmBtn = confirmBtn.cloneNode(true);
+    confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+
+    newConfirmBtn.addEventListener('click', () => {
+        onConfirm();
+        unsavedChangesModal.hide();
+    }, { once: true }); // 이벤트가 한 번만 실행되도록 설정
+
+    unsavedChangesModal.show();
+}
+
+/**
+ * 발송등록 폼에 입력된 내용이 있는지 확인하는 함수
+ * @returns {boolean} 내용이 있으면 true, 없으면 false
+ */
+function isSendCouponFormDirty() {
+    const fields = ['clientName', 'salesManager', 'clientRequester', 'requesterPhone', 'requesterEmail', 'eventName', 'productName', 'mmsTitle', 'mmsContent', 'senderPhone', 'recipientList', 'excelFileInput'];
+    const dispatchInput = document.querySelector('#dispatchDateTime input');
+    if (dispatchInput && dispatchInput.value) return true;
+    return fields.some(id => document.getElementById(id) && document.getElementById(id).value.trim() !== '');
 }

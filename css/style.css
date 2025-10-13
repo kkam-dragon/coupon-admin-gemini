@@ -249,6 +249,17 @@ th[data-sortable]:hover {
     width: 100%;
 }
 
+/* 발송조회 테이블 컬럼 너비 조정 */
+.table .col-dispatch-datetime { width: 160px; }
+.table .col-expiry-date { width: 160px; }
+.table .col-quantity { width: 80px; }
+.table .col-unit-price { width: 100px; }
+.table .col-total-price { width: 110px; }
+.table .col-status { width: 90px; }
+.table .col-view-detail { width: 80px; }
+.table .col-cancel { width: 90px; }
+
+
 /* 상세 보기 모달 테이블 스타일 */
 #detailModalTable th {
     background-color: #F9FAFB; /* 헤더 배경색 */
