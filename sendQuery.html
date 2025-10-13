@@ -104,17 +104,50 @@
 
     <!-- Detail Modal -->
     <div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="detailModalLabel">발송 상세 정보</h5>
+                    <h5 class="modal-title w-100 text-center" id="detailModalLabel">발송 상세 정보</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
-                    <div class="table-responsive">
-                        <table class="table table-bordered" id="detailModalTable">
-                            <!-- 상세 정보가 여기에 동적으로 채워집니다. -->
+                <div class="modal-body" id="detailModalBody">
+                    <div class="d-flex justify-content-end mb-3">
+                        <div class="input-group input-group-sm me-2" style="width: 200px;">
+                            <input type="text" id="detailModalSearchInput" class="form-control" placeholder="수신자/쿠폰번호 검색...">
+                            <button class="btn btn-outline-secondary clear-input-btn" type="button" style="display: none;"><i class="fas fa-times"></i></button>
+                        </div>
+                        <span id="detailTotalResults" class="fs-6 fw-normal text-nowrap me-3">총 0건</span>
+                        <button type="button" class="btn btn-success btn-sm" id="detailExcelDownloadBtn"><i class="fas fa-download me-1"></i>엑셀 내려받기</button>
+                    </div>
+                    <div class="table-responsive" id="detailScrollContainer" style="height: 40vh; overflow-y: auto;">
+                        <table class="table table-hover table-sm text-center">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="no-wrap-text col-modal-no">No</th>
+                                    <th class="truncate-text col-modal-datetime">발송일시</th>
+                                    <th class="truncate-text col-modal-client">고객사</th>
+                                    <th class="no-wrap-text col-modal-manager">담당자</th>
+                                    <th class="truncate-text col-modal-event">이벤트명</th>
+                                    <th class="truncate-text col-modal-orderid">주문ID</th>
+                                    <th class="truncate-text col-modal-product">상품명</th>
+                                    <th class="no-wrap-text col-modal-price">정상단가</th>
+                                    <th class="no-wrap-text col-modal-sender">발신자번호</th>
+                                    <th class="no-wrap-text col-modal-recipient">수신자번호</th>
+                                    <th class="no-wrap-text col-modal-status">발송상태</th>
+                                    <th class="truncate-text col-modal-coupon">쿠폰번호</th>
+                                    <th class="truncate-text col-modal-expiry">유효기간</th>
+                                </tr>
+                            </thead>
+                            <tbody id="detailModalTableBody">
+                                <!-- 개별 쿠폰 목록이 여기에 동적으로 채워집니다. -->
+                            </tbody>
                         </table>
+                        <!-- 모달 로딩 스피너 -->
+                        <div id="detailModalSpinner" class="text-center my-3 d-none">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -124,6 +157,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://npmcdn.com/flatpickr/dist/l10n/ko.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
         function logout() {
             if (confirm('로그아웃 하시겠습니까?')) { window.location.href = 'index.html'; }
@@ -194,6 +228,7 @@
                 { no: 23, dispatchDate: "2024-06-07 09:00", client: "C고객사", manager: "박과장", event: "주말 예약", orderId: "PO-202406-00210", productName: "교촌치킨 허니콤보", quantity: 300, unitPrice: 23000, senderPhone: "1668-3551", status: "예약", couponNumber: "232345456767", expiryDate: "2024-08-06" },
                 { no: 24, dispatchDate: "2024-04-20 10:00", client: "L고객사", manager: "정사원", event: "지난 이벤트", orderId: "PO-202404-00050", productName: "BHC 뿌링클", quantity: 100, unitPrice: 21000, senderPhone: "1588-1234", status: "완료", couponNumber: "343456567878", expiryDate: "2024-06-19" },
                 { no: 25, dispatchDate: "2024-04-15 10:00", client: "A고객사 (주)블루오션 마케팅", manager: "김영업", event: "4월 출석체크", orderId: "PO-202404-00040", productName: "GS25 1천원권", quantity: 2000, unitPrice: 1000, senderPhone: "1668-3551", status: "완료", couponNumber: "454567678989", expiryDate: "2029-04-14" },
+                { no: 26, dispatchDate: "2024-06-08 11:00", client: "M고객사", manager: "이대리", event: "신규 서비스 런칭 기념", orderId: "PO-202406-00220", productName: "배달의민족 1만원권", quantity: 20, unitPrice: 10000, senderPhone: "1668-3551", status: "완료", couponNumber: "565678789090", expiryDate: "2025-06-07" },
             ];
 
             const searchBtn = document.getElementById('searchBtn');
@@ -235,7 +270,7 @@
                                 <td>${item.unitPrice.toLocaleString()}</td>
                                 <td>${totalPrice.toLocaleString()}</td>
                                 <td>${statusBadge}</td>
-                                <td><button class="btn btn-sm btn-outline-secondary btn-view-detail" data-id="${item.no}">보기</button></td>
+                                <td><button class="btn btn-sm btn-outline-secondary btn-view-detail" data-id="${item.no}" data-bs-toggle="modal" data-bs-target="#detailModal">보기</button></td>
                             </tr>
                         `;
                     }).join('');
@@ -368,6 +403,153 @@
                 updateSortIcons();
             });
 
+            // 상세보기 모달 이벤트
+            const detailModal = document.getElementById('detailModal');
+            const detailModalBody = document.getElementById('detailModalBody');
+            const detailModalLabel = document.getElementById('detailModalLabel');
+            const detailModalTableBody = document.getElementById('detailModalTableBody');
+            const detailModalSearchInput = document.getElementById('detailModalSearchInput');
+            const detailTotalResults = document.getElementById('detailTotalResults');
+            const detailExcelDownloadBtn = document.getElementById('detailExcelDownloadBtn');
+            const detailModalSpinner = document.getElementById('detailModalSpinner');
+
+            let detailData = []; // 모달에 표시될 전체 상세 데이터
+            let masterData = {}; // 모달의 마스터 데이터 (반복되지 않는 정보)
+            let displayedDetailData = []; // 현재 검색/정렬된 상세 데이터
+            let isDetailLoading = false;
+            const DETAIL_ROWS_PER_LOAD = 10;
+
+            // 모달 내 데이터 렌더링 함수
+            const renderDetailTable = (data, append = false) => {
+                if (!append) detailModalTableBody.innerHTML = '';
+
+                const rowsHtml = data.map((item, index) => {
+                    return `
+                        <tr>
+                            <td class="col-modal-no">${item.no}</td>
+                            <td class="truncate-text col-modal-datetime" title="${masterData.dispatchDate}">${masterData.dispatchDate}</td>
+                            <td class="truncate-text col-modal-client" title="${masterData.client}">${masterData.client}</td>
+                            <td class="col-modal-manager">${masterData.manager}</td>
+                            <td class="truncate-text col-modal-event" title="${masterData.event}">${masterData.event}</td>
+                            <td class="truncate-text col-modal-orderid" title="${masterData.orderId}">${masterData.orderId}</td>
+                            <td class="truncate-text col-modal-product" title="${masterData.productName}">${masterData.productName}</td>
+                            <td class="col-modal-price">${masterData.unitPrice.toLocaleString()}</td>
+                            <td class="col-modal-sender">${masterData.senderPhone}</td>
+                            <td class="col-modal-recipient" title="${item.recipient}">${item.recipient.slice(0, -4)}****</td>
+                            <td class="col-modal-status">${masterData.status}</td>
+                            <td class="truncate-text col-modal-coupon" title="${item.coupon}">${item.coupon.slice(0, -6)}******</td>
+                            <td class="truncate-text col-modal-expiry" title="${masterData.expiryDate}">${masterData.expiryDate}</td>
+                        </tr>
+                    `;
+                }).join('');
+                detailModalTableBody.innerHTML += rowsHtml;
+                detailTotalResults.textContent = `총 ${displayedDetailData.length}건`;
+            };
+
+            // 모달 내 추가 데이터 로드 함수
+            const loadMoreDetailData = () => {
+                if (isDetailLoading || detailModalTableBody.children.length >= displayedDetailData.length) return;
+
+                isDetailLoading = true;
+                detailModalSpinner.classList.remove('d-none');
+
+                setTimeout(() => {
+                    const nextData = displayedDetailData.slice(detailModalTableBody.children.length, detailModalTableBody.children.length + DETAIL_ROWS_PER_LOAD);
+                    renderDetailTable(nextData, true);
+                    isDetailLoading = false;
+                    detailModalSpinner.classList.add('d-none');
+                }, 300);
+            };
+            
+            detailModal.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget; // 모달을 트리거한 버튼
+                const itemId = parseInt(button.getAttribute('data-id')); // data-id 속성에서 ID 가져오기
+                const itemData = allData.find(d => d.no === itemId); // ID로 데이터 찾기
+
+                if (!itemData) return; 
+
+                masterData = { ...itemData }; // 마스터 데이터 복사
+
+                // 모달 제목 설정
+                detailModalLabel.textContent = `[${itemData.client}] ${itemData.event}`;
+                detailModalSearchInput.value = ''; // 검색창 초기화
+
+                // 가상의 개별 쿠폰 데이터 생성
+                detailData = [];
+                // 26번 데이터(수량 20개)에 대해서만 상세 더미 데이터 생성
+                if (itemData.no === 26) {
+                    for (let i = 0; i < itemData.quantity; i++) {
+                        const recipientNumber = `010-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(1000 + Math.random() * 9000)}`;
+                        const couponNumber = BigInt(itemData.couponNumber) + BigInt(i);
+                        detailData.push({
+                            no: i + 1,
+                            recipient: recipientNumber,
+                            coupon: couponNumber.toString(),
+                        });
+                    }
+                } else {
+                    // 다른 데이터는 15개씩 생성 (테스트용)
+                    for (let i = 0; i < 15; i++) {
+                        const recipientNumber = `010-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(1000 + Math.random() * 9000)}`;
+                        const couponNumber = BigInt(itemData.couponNumber) + BigInt(i);
+                        detailData.push({
+                            no: i + 1,
+                            recipient: recipientNumber,
+                            coupon: couponNumber.toString(),
+                        });
+                    }
+                }
+                displayedDetailData = [...detailData];
+                renderDetailTable(displayedDetailData.slice(0, DETAIL_ROWS_PER_LOAD));
+            });
+
+            // 모달 내부 스크롤 이벤트
+            const detailScrollContainer = document.getElementById('detailScrollContainer');
+            let lastScrollTop = 0; // 마지막 세로 스크롤 위치를 저장
+
+            detailScrollContainer.addEventListener('scroll', (e) => {
+                const currentScrollTop = detailScrollContainer.scrollTop;
+
+                // 세로로 스크롤을 내릴 때만 동작하도록 수정
+                if (currentScrollTop > lastScrollTop && (currentScrollTop + detailScrollContainer.clientHeight >= detailScrollContainer.scrollHeight - 100)) {
+                    loadMoreDetailData();
+                }
+
+                // 마지막 스크롤 위치 업데이트
+                lastScrollTop = currentScrollTop <= 0 ? 0 : currentScrollTop;
+            });
+
+            // 모달 내부 검색 이벤트
+            detailModalSearchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                displayedDetailData = detailData.filter(item => item.recipient.includes(searchTerm) || item.coupon.includes(searchTerm));
+                renderDetailTable(displayedDetailData.slice(0, DETAIL_ROWS_PER_LOAD));
+            });
+
+            // 엑셀 다운로드 버튼 이벤트
+            detailExcelDownloadBtn.addEventListener('click', () => {
+                // 엑셀용 데이터 재구성
+                const excelData = displayedDetailData.map(item => ({
+                    'No': item.no,
+                    '발송일시': masterData.dispatchDate,
+                    '고객사': masterData.client,
+                    '담당자': masterData.manager,
+                    '이벤트명': masterData.event,
+                    '주문ID': masterData.orderId,
+                    '상품명': masterData.productName, 
+                    '정상단가': masterData.unitPrice,
+                    '발신자번호': master.senderPhone,
+                    '수신자번호': item.recipient, // 엑셀에는 마스킹 안된 원본 번호 저장
+                    '발송상태': masterData.status,
+                    '쿠폰번호': item.coupon,
+                    '유효기간': masterData.expiryDate,
+                }));
+                const ws = XLSX.utils.json_to_sheet(excelData);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "발송상세");
+                XLSX.writeFile(wb, "발송상세내역.xlsx");
+            });
+
             // 입력창 클리어 버튼 기능 초기화
             const setupClearButton = (inputId) => {
                 const input = document.getElementById(inputId);
@@ -388,9 +570,10 @@
             setupClearButton('queryClientName');
             setupClearButton('queryEventName');
             setupClearButton('tableSearchInput');
+            setupClearButton('detailModalSearchInput');
 
             // 입력창 클릭 시 전체 선택 기능 추가
-            const inputsToSelect = ['queryClientName', 'queryEventName', 'tableSearchInput'];
+            const inputsToSelect = ['queryClientName', 'queryEventName', 'tableSearchInput', 'detailModalSearchInput'];
             inputsToSelect.forEach(id => {
                 const input = document.getElementById(id);
                 if (input) {

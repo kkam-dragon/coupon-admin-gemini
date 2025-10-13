@@ -250,3 +250,49 @@ th[data-sortable]:hover {
     table-layout: fixed;
     width: 100%;
 }
+
+/* 상세 보기 모달 테이블 스타일 */
+#detailModalTable th {
+    background-color: #F9FAFB; /* 헤더 배경색 */
+    text-align: center;
+}
+
+.modal-body .table {
+    table-layout: auto; /* 모달 안에서는 콘텐츠 길이에 맞춰 너비 조절 */
+    min-width: 600px; /* 최소 너비를 지정하여 가로 스크롤이 필요한 경우를 대비 */
+}
+
+/* 상세 보기 모달 컬럼별 너비 */
+/* 각 컬럼의 최소 너비를 보장합니다. */
+.modal-body .table .col-modal-no { width: 60px; }
+.modal-body .table .col-modal-datetime { width: 160px; }
+.modal-body .table .col-modal-client { width: 180px; } /* 줄임말 표시를 위해 너비 고정 */
+.modal-body .table .col-modal-manager { width: 90px; }
+.modal-body .table .col-modal-event { width: 200px; } /* 줄임말 표시를 위해 너비 고정 */
+.modal-body .table .col-modal-orderid { width: 180px; }
+.modal-body .table .col-modal-product { width: 200px; } /* 줄임말 표시를 위해 너비 고정 */
+.modal-body .table .col-modal-price { width: 100px; }
+.modal-body .table .col-modal-sender { width: 130px; }
+.modal-body .table .col-modal-recipient { width: 130px; }
+.modal-body .table .col-modal-status { width: 90px; }
+.modal-body .table .col-modal-coupon { width: 140px; }
+.modal-body .table .col-modal-expiry { width: 110px; }
+
+/* 모달 내 테이블은 레이아웃 고정 */
+.modal-body .table {
+    table-layout: fixed;
+}
+
+.modal-body .table th, .modal-body .table td {
+    vertical-align: middle;
+}
+
+/* 상세 보기 모달 제목 트렌디 스타일 */
+.modal-header {
+    background-color: #F3F4F6; /* Tailwind's gray-100 */
+    border-bottom: 1px solid #E5E7EB; /* Tailwind's gray-200 */
+}
+.modal-title {
+    font-weight: 600;
+    color: #1F2937; /* Tailwind's gray-800 */
+}
