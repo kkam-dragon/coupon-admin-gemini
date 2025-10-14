@@ -192,9 +192,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // 간편등록 초기화 버튼 클릭 이벤트
         resetSimpleRegBtn.addEventListener('click', () => {
-            // 입력 내용이 있을 때만 확인 팝업을 띄움
-            if (recipientListTextarea.value && confirm('입력한 모든 휴대폰 번호를 초기화하시겠습니까?')) {
-                resetSimpleRegistration();
+            // 입력 내용이 있을 때만 모달 팝업을 띄움
+            if (recipientListTextarea.value.trim() !== '') {
+                showUnsavedChangesModal(
+                    () => resetSimpleRegistration(true), // 확인 시 강제 초기화
+                    "입력한 모든 휴대폰 번호를 초기화하시겠습니까?"
+                );
             }
         });
     }
@@ -275,9 +278,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // 초기화 버튼 클릭 이벤트
         resetExcelFileBtn.addEventListener('click', () => {
-            // 파일이 선택되어 있을 때만 확인 팝업을 띄움
-            if (excelFileInput.value && confirm('선택한 파일 정보를 초기화하시겠습니까?')) {
-                resetExcelUpload();
+            // 파일이 선택되어 있을 때만 모달 팝업을 띄움
+            if (excelFileInput.value) {
+                showUnsavedChangesModal(
+                    resetExcelUpload,
+                    "선택한 파일 정보를 초기화하시겠습니까?"
+                );
             }
         });
     }
@@ -397,11 +403,14 @@ document.addEventListener('DOMContentLoaded', function() {
     if (cancelBtn) { // cancelBtn이 존재하는 페이지(sendCoupon.html)에서만 실행
         cancelBtn.addEventListener('click', (e) => {
             e.preventDefault(); // a 태그처럼 기본 동작을 막음
+            const cancelMessage = "작성 중인 내용이 모두 사라집니다.<br>정말 취소하시겠습니까?";
             if (isSendCouponFormDirty()) {
-                showUnsavedChangesModal(() => {
-                    allowNavigation = true;
-                    location.reload();
-                });
+                showUnsavedChangesModal(
+                    () => {
+                        allowNavigation = true;
+                        location.reload();
+                    }, cancelMessage
+                );
             } else {
                 location.reload();
             }
@@ -516,7 +525,9 @@ function resetExcelUpload() {
  */
 function resetSimpleRegistration(force = false) {
     const recipientListTextarea = document.getElementById('recipientList');
-    if (recipientListTextarea && (force || recipientListTextarea.value && confirm('입력한 모든 휴대폰 번호를 초기화하시겠습니까?'))) {
+    // force가 true이거나, 내용이 있고 사용자가 확인을 누른 경우에만 실행
+    // 버튼 클릭 로직이 showUnsavedChangesModal을 사용하도록 변경되었으므로, 이 함수의 confirm은 제거합니다.
+    if (recipientListTextarea && (force || (recipientListTextarea.value.trim() !== '' && !force))) {
         recipientListTextarea.value = '';
         recipientListTextarea.dispatchEvent(new Event('input', { bubbles: true }));
     }
@@ -615,18 +626,27 @@ let allowNavigation = false; // 페이지 이동을 허용할지 여부
 
 /**
  * 미저장 변경사항 확인 모달을 띄우는 함수
- * @param {function} onConfirm - '확인' 버튼을 눌렀을 때 실행될 콜백 함수
+ * @param {function} onConfirm - '확인' 버튼 클릭 시 실행될 콜백 함수
+ * @param {string} [message] - 모달에 표시할 메시지. 없으면 기본 메시지 사용.
  */
-function showUnsavedChangesModal(onConfirm) {
+function showUnsavedChangesModal(onConfirm, message) {
     const modalEl = document.getElementById('unsavedChangesModal');
     if (!modalEl) {
-        // 모달이 없는 페이지에서는 즉시 콜백 실행
         onConfirm();
         return;
     }
 
     const unsavedChangesModal = new bootstrap.Modal(modalEl);
     const confirmBtn = document.getElementById('confirmNavigateBtn');
+    const modalBody = document.getElementById('unsavedChangesModalBody');
+    const originalMessage = modalBody.dataset.originalMessage; // 기본 메시지 가져오기
+
+    // 메시지 설정: 사용자 정의 메시지가 있으면 사용하고, 없으면 기본 메시지 사용
+    if (message) {
+        modalBody.innerHTML = message; // 줄바꿈(<br>)을 위해 innerHTML 사용
+    } else {
+        modalBody.innerHTML = originalMessage;
+    }
     
     const newConfirmBtn = confirmBtn.cloneNode(true);
     confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
@@ -640,6 +660,12 @@ function showUnsavedChangesModal(onConfirm) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    // 모달의 기본 메시지를 data 속성에 저장
+    const modalBody = document.getElementById('unsavedChangesModalBody');
+    if (modalBody) {
+        modalBody.dataset.originalMessage = modalBody.textContent;
+    }
+
     // 모든 링크(<a>) 클릭을 가로채서 변경사항 확인
     document.body.addEventListener('click', function(e) {
         const link = e.target.closest('a');
@@ -676,9 +702,24 @@ document.addEventListener('DOMContentLoaded', function() {
  * 발송등록 폼에 입력된 내용이 있는지 확인하는 함수
  * @returns {boolean} 내용이 있으면 true, 없으면 false
  */
-function isSendCouponFormDirty() {
-    const fields = ['clientName', 'salesManager', 'clientRequester', 'requesterPhone', 'requesterEmail', 'eventName', 'productName', 'mmsTitle', 'mmsContent', 'senderPhone', 'recipientList', 'excelFileInput'];
+ function isSendCouponFormDirty() {
+    // 기본값이 설정된 필드와 그 값을 정의합니다.
+    const defaultValues = {
+        salesManager: '심재준',
+        senderPhone: '16683551'
+    };
+
+    // 기본값이 없는 일반 필드 목록입니다.
+    const otherFields = ['clientName', 'clientRequester', 'requesterPhone', 'requesterEmail', 'eventName', 'productName', 'mmsTitle', 'mmsContent', 'recipientList', 'excelFileInput'];
+
+    // 1. 기본값이 있는 필드가 변경되었는지 확인합니다.
+    for (const id in defaultValues) {
+        const element = document.getElementById(id);
+        if (element && element.value !== defaultValues[id]) return true;
+    }
+
+    // 2. 그 외 필드에 값이 입력되었는지 확인합니다.
     const dispatchInput = document.querySelector('#dispatchDateTime input');
-    if (dispatchInput && dispatchInput.value) return true;
-    return fields.some(id => document.getElementById(id) && document.getElementById(id).value.trim() !== '');
+    if (dispatchInput && dispatchInput.value) return true; // 발송 예약일시
+    return otherFields.some(id => document.getElementById(id) && document.getElementById(id).value.trim() !== '');
 }
