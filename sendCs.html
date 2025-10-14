@@ -102,6 +102,50 @@
         </div>
     </div>
 
+    <!-- Generic Alert Modal -->
+    <div class="modal fade" id="alertModal" tabindex="-1" aria-labelledby="alertModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="alertModalLabel">알림</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="alertModalBody"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">확인</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change Phone Number Modal -->
+    <div class="modal fade" id="changePhoneModal" tabindex="-1" aria-labelledby="changePhoneModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="changePhoneModalLabel">휴대폰 번호 변경</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">현재 휴대폰 번호</label>
+                        <input type="text" class="form-control" id="currentPhoneNumber" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="newPhoneNumber" class="form-label">변경할 휴대폰 번호</label>
+                        <input type="text" id="newPhoneNumber" class="form-control" placeholder="숫자만 입력하세요 (최대 11자리)" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                    <button type="button" class="btn btn-primary" id="changePhoneConfirmBtn">변경</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Success Alert Modal -->
     <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-sm modal-dialog-centered">
@@ -249,7 +293,7 @@
                                     <div class="btn-group" role="group">
                                         <button class="btn btn-sm ${buttonClass}" onclick="showCsConfirmModal('재발송', '${item.couponNumber} 쿠폰을 재발송 하시겠습니까?', () => showSuccessModal('재발송 처리되었습니다.'))" ${disabledAttribute}>재발송</button>
                                         <button class="btn btn-sm ${buttonClass}" onclick="showCsConfirmModal('쿠폰폐기', '${item.couponNumber} 쿠폰을 폐기 하시겠습니까?', () => showSuccessModal('쿠폰이 폐기되었습니다.'))" ${disabledAttribute}>쿠폰폐기</button>
-                                        <button class="btn btn-sm ${buttonClass}" onclick="alert('${item.recipientPhone} 번호를 변경합니다.')" ${disabledAttribute}>번호변경</button>
+                                        <button class="btn btn-sm ${buttonClass}" onclick="showChangePhoneModal('${item.couponNumber}', '${item.recipientPhone}')" ${disabledAttribute}>번호변경</button>
                                     </div>
                                 </td>
                             </tr>
@@ -388,6 +432,11 @@
             const successModalEl = document.getElementById('successModal');
             const successModal = new bootstrap.Modal(successModalEl);
             const successModalBody = document.getElementById('successModalBody');
+            
+            // 공용 알림 모달 관련 로직
+            const alertModalEl = document.getElementById('alertModal');
+            const alertModal = new bootstrap.Modal(alertModalEl);
+            const alertModalBody = document.getElementById('alertModalBody');
 
             let confirmCallback = null;
 
@@ -400,6 +449,7 @@
 
             csActionConfirmBtn.addEventListener('click', () => {
                 if (typeof confirmCallback === 'function') {
+                    csActionConfirmBtn.dataset.confirmed = 'true'; // 확인 버튼이 눌렸음을 표시
                     confirmCallback();
                 }
                 csActionModal.hide();
@@ -410,6 +460,83 @@
                 successModal.show();
                 setTimeout(() => successModal.hide(), 1500); // 1.5초 후 자동으로 닫힘
             };
+
+            // 번호 변경 모달 관련 로직
+            const changePhoneModalEl = document.getElementById('changePhoneModal');
+            const changePhoneModal = new bootstrap.Modal(changePhoneModalEl);
+            const currentPhoneNumberEl = document.getElementById('currentPhoneNumber');
+            const newPhoneNumberEl = document.getElementById('newPhoneNumber');
+            const changePhoneConfirmBtn = document.getElementById('changePhoneConfirmBtn');
+            let currentCouponNumber = null;
+            let originalPhoneNumber = null; // 원본 번호 저장을 위한 변수 추가
+
+            window.showChangePhoneModal = (couponNumber, originalPhone) => {
+                currentCouponNumber = couponNumber;
+                originalPhoneNumber = originalPhone.replace(/-/g, ''); // 하이픈 제거 후 저장
+                // 현재 번호 마스킹 처리
+                currentPhoneNumberEl.value = `***-****-${originalPhone.slice(-4)}`;
+                newPhoneNumberEl.value = ''; // 입력 필드 초기화
+                changePhoneModal.show();
+            };
+
+            changePhoneConfirmBtn.addEventListener('click', () => {
+                const newPhone = newPhoneNumberEl.value.trim();
+                if (newPhone.length < 10 || newPhone.length > 11) {
+                    alert('휴대폰 번호를 10~11자리로 정확히 입력해주세요.');
+                    newPhoneNumberEl.focus();
+                    return;
+                }
+
+                // 현재 번호와 동일한지 체크하는 로직 추가
+                if (newPhone === originalPhoneNumber) {
+                    changePhoneModal.hide(); // 알림 모달을 띄우기 전에 현재 모달을 먼저 닫습니다.
+                    alertModalBody.textContent = '번호가 동일합니다. 확인 후 다시 입력하세요.';
+                    alertModal.show(); // 그 다음에 알림 모달을 띄웁니다.
+                    alertModal.show();
+                    newPhoneNumberEl.focus();
+                    return;
+                }
+
+                changePhoneModal.hide(); // 확인 모달을 띄우기 전에 현재 모달을 먼저 닫습니다.
+
+                // 재사용 가능한 csActionModal을 사용
+                showCsConfirmModal(
+                    '번호 변경 확인', 
+                    `'${newPhone}' 번호로 변경하시겠습니까?`, 
+                    () => {
+                        // TODO: 향후 DB 업데이트 로직 구현
+                        // DB 업데이트 예시: updatePhoneNumber(currentCouponNumber, newPhone);
+                        // 예: updatePhoneNumber(currentCouponNumber, newPhone);
+                        console.log(`쿠폰번호 ${currentCouponNumber}의 휴대폰 번호를 ${newPhone}(으)로 변경 요청`);
+                        changePhoneModal.hide();
+                        showSuccessModal('휴대폰 번호가 변경되었습니다.');
+                    }
+                );
+            });
+
+            // '번호 변경 확인' 모달(csActionModal)이 닫힐 때, '번호 변경' 모달(changePhoneModal)을 다시 띄워줍니다.
+            // 단, 사용자가 '확인'을 눌러 콜백이 실행된 경우는 제외합니다.
+            csActionModalEl.addEventListener('hidden.bs.modal', function (event) {
+                if (csActionConfirmBtn.dataset.confirmed !== 'true') {
+                    changePhoneModal.show(); // '취소'를 눌렀을 때만 다시 띄움
+                }
+                delete csActionConfirmBtn.dataset.confirmed; // 상태 초기화
+            });
+
+            // '알림' 모달(alertModal)이 닫힐 때, '번호 변경' 모달(changePhoneModal)을 다시 띄워줍니다.
+            alertModalEl.addEventListener('hidden.bs.modal', function (event) {
+                if (changePhoneModal) {
+                    // 모달이 완전히 표시된 후에 포커스 및 선택을 처리하기 위해 'shown' 이벤트를 사용합니다.
+                    changePhoneModalEl.addEventListener('shown.bs.modal', function onShown() {
+                        newPhoneNumberEl.focus();
+                        newPhoneNumberEl.select();
+                        // 이벤트 리스너가 중복으로 쌓이지 않도록 한 번 실행된 후 제거합니다.
+                        changePhoneModalEl.removeEventListener('shown.bs.modal', onShown);
+                    }, { once: true }); // once: true 옵션으로도 동일한 효과를 낼 수 있습니다.
+                    changePhoneModal.show();
+                }
+            });
+
         });
     </script>
 </body>
