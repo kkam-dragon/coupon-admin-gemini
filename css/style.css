@@ -1,3 +1,12 @@
+/* 페이드 전환 효과 */
+body {
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+body.loaded {
+  opacity: 1;
+}
+
 /* General Body Styling */
 body {
     background-color: #F9FAFB; /* Tailwind's gray-50 */

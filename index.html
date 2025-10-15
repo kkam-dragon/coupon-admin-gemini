@@ -26,6 +26,11 @@
     </div>
 
     <script>
+        // 페이지 로드 시 페이드인 효과 적용
+        document.addEventListener('DOMContentLoaded', function() {
+            document.body.classList.add('loaded');
+        });
+
         function login() {
             // 실제 인증 과정은 없으며, 페이지 이동만 처리합니다.
             window.location.href = 'sendCoupon.html';
