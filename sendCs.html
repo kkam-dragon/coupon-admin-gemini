@@ -381,9 +381,9 @@
                         const rowClass = hasHistory ? 'accordion-toggle' : '';
                         const expandIcon = hasHistory ? '<i class="fas fa-caret-down ms-2 text-muted"></i>' : '';
 
-                        // Main Row
+                        // 메인 행(row) 생성
                         rowsHtml += `
-                            <tr class="${rowClass} main-row" ${toggleAttributes} style="${hasHistory ? 'cursor: pointer;' : ''}">
+                            <tr class="main-row ${rowClass}" data-history-id="${historyId}" style="${hasHistory ? 'cursor: pointer;' : ''}">
                                 <td class="col-no">${(tableBody.querySelectorAll('tr.main-row').length) + index + 1}${expandIcon}</td>
                                 <td class="col-cs-datetime">${item.dispatchDate}</td>
                                 <td class="truncate-text col-cs-client" title="${item.client}">${item.client}</td>
@@ -412,8 +412,7 @@
                                     <td style="border: none;"></td>
                                     <td colspan="10" class="p-0" style="border: none;">
                                         <div id="${historyId}" class="collapse">
-                                            <div class="p-3" style="background-color: #f8f9fa;">
-                                                <h6 class="mb-2 text-start"><i class="fas fa-history me-2"></i>CS 처리 이력</h6>
+                                            <div class="p-3" style="background-color: #f8f9fa;">                                                <h6 class="mb-2 text-start"><i class="fas fa-history me-2"></i>CS 처리 이력</h6>
                                                 <table class="table table-sm table-bordered bg-white mb-0">
                                                     <thead class="table-light">
                                                         <tr>
@@ -493,6 +492,21 @@
                 displayedResults = sortData(currentResults, sortState.key, sortState.direction);
                 renderTable(displayedResults.slice(0, ROWS_PER_LOAD));
                 updateSortIcons();
+            });
+
+            // 아코디언 클릭 이벤트 처리 (이벤트 위임)
+            tableBody.addEventListener('click', (e) => {
+                const row = e.target.closest('tr.accordion-toggle');
+                if (!row) return;
+
+                // CS 처리 버튼 영역을 클릭한 경우는 무시
+                if (e.target.closest('.col-cs-action')) {
+                    return;
+                }
+
+                const historyId = row.dataset.historyId;
+                const historyCollapse = document.getElementById(historyId);
+                if (historyCollapse) new bootstrap.Collapse(historyCollapse).toggle();
             });
 
             // 조회 조건 입력창에서 Enter 키 누르면 조회 실행
@@ -658,7 +672,6 @@
                     changePhoneModal.hide(); // 알림 모달을 띄우기 전에 현재 모달을 먼저 닫습니다.
                     alertModalBody.textContent = '번호가 동일합니다. 확인 후 다시 입력하세요.';
                     alertModal.show(); // 그 다음에 알림 모달을 띄웁니다.
-                    alertModal.show();
                     newPhoneNumberEl.focus();
                     return;
                 }
