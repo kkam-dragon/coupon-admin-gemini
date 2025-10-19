@@ -64,12 +64,12 @@
                             <th class="col-cs-status" data-sortable data-sort-key="couponStatus">쿠폰상태 <i class="sort-icon fas fa-sort"></i></th>
                             <th class="col-cs-phone">휴대폰번호</th>
                             <th class="col-cs-coupon">쿠폰번호</th>
-                            <th class="col-cs-action" style="width: 290px; min-width: 290px;">CS처리</th>
+                            <th class="col-cs-action" style="width: 290px; min-width: 290px;">CS 처리</th>
                         </tr>
                     </thead>
                     <tbody id="resultsTableBody">
                         <tr>
-                            <td colspan="11">조회된 결과가 없습니다.</td>
+                            <td colspan="12">조회된 결과가 없습니다.</td>
                         </tr>
                     </tbody>
                 </table>
@@ -304,6 +304,34 @@
             });
             allCsData = allCsData.concat(specialDiscardedData);
 
+            // CS 히스토리 테스트를 위한 데이터 수정
+            if (allCsData.length > 0) {
+                allCsData[0].history = [
+                    { type: '재발송', date: '2024-06-10 11:00', memo: '고객 요청으로 재발송 처리' },
+                    { type: '기타', date: '2024-06-09 14:30', memo: '단순 문의' }
+                ];
+                allCsData[2].history = [
+                    { type: '번호변경', date: '2024-06-08 10:20', memo: '010-1111-2222로 변경' }
+                ];
+                // 폐기된 데이터에도 히스토리 추가
+                const discardedItem = allCsData.find(item => item.couponStatus === '폐기');
+                if (discardedItem) {
+                    discardedItem.history = [{ type: '쿠폰폐기', date: '2024-06-01 18:00', memo: '사용자 요청으로 폐기 처리' }];
+                }
+
+                // '010-9696-0524'로 조회되는 데이터에 CS 히스토리 추가
+                const specialDataItems = allCsData.filter(item => item.recipientPhone === '010-9696-0524');
+                if (specialDataItems.length > 2) {
+                    specialDataItems[0].history = [
+                        { type: '재발송', date: '2024-05-21 09:30', memo: '문자 수신 못했다는 고객 문의' }
+                    ];
+                    specialDataItems[1].history = [
+                        { type: '번호변경', date: '2024-05-20 15:00', memo: '번호 변경 요청 (010-9696-0524 -> 010-xxxx-xxxx)' },
+                        { type: '재발송', date: '2024-05-20 15:01', memo: '변경된 번호로 재발송' }
+                    ];
+                }
+            }
+
 
             const searchBtn = document.getElementById('searchBtn');
             const tableBody = document.getElementById('resultsTableBody');
@@ -324,7 +352,8 @@
                 if (!append) tableBody.innerHTML = '';
 
                 if (data.length > 0) {
-                    const rowsHtml = data.map((item, index) => {
+                    let rowsHtml = '';
+                    data.forEach((item, index) => {
                         let statusBadge;
                         switch (item.couponStatus) {
                             case '교환': statusBadge = '<span class="badge bg-success">교환</span>'; break;
@@ -333,34 +362,39 @@
                             default: statusBadge = `<span class="badge bg-light text-dark">${item.couponStatus}</span>`; break;
                         }
 
-                // 유효기간 만료 처리
-                const today = new Date();
-                today.setHours(0, 0, 0, 0); // 날짜만 비교하기 위해 시간 초기화
-                const expiryDate = new Date(item.expiryDate);
-                const isExpired = expiryDate < today;
-                let expiryDateHtml = item.expiryDate;
-                if (isExpired) {
-                    expiryDateHtml += '<span class="text-danger ms-1">(만료)</span>';
-                }
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        const expiryDate = new Date(item.expiryDate);
+                        const isExpired = expiryDate < today;
+                        let expiryDateHtml = item.expiryDate;
+                        if (isExpired) {
+                            expiryDateHtml += '<span class="text-danger ms-1">(만료)</span>';
+                        }
 
-                // CS 처리 버튼 비활성화 조건
-                const isCsDisabled = isExpired || item.couponStatus === '교환' || item.couponStatus === '폐기';
-                const buttonClass = isCsDisabled ? 'btn-outline-secondary' : 'btn-dark';
-                const disabledAttribute = isCsDisabled ? 'disabled' : '';
+                        const isCsDisabled = isExpired || item.couponStatus === '교환' || item.couponStatus === '폐기';
+                        const buttonClass = isCsDisabled ? 'btn-outline-secondary' : 'btn-dark';
+                        const disabledAttribute = isCsDisabled ? 'disabled' : '';
 
-                        return `
-                            <tr>
-                                <td class="col-no">${(tableBody.children.length) + index + 1}</td>
+                        const hasHistory = item.history && item.history.length > 0;
+                        const historyId = `history-${item.no}`;
+                        const toggleAttributes = hasHistory ? `data-bs-toggle="collapse" data-bs-target="#${historyId}"` : '';
+                        const rowClass = hasHistory ? 'accordion-toggle' : '';
+                        const expandIcon = hasHistory ? '<i class="fas fa-caret-down ms-2 text-muted"></i>' : '';
+
+                        // Main Row
+                        rowsHtml += `
+                            <tr class="${rowClass} main-row" ${toggleAttributes} style="${hasHistory ? 'cursor: pointer;' : ''}">
+                                <td class="col-no">${(tableBody.querySelectorAll('tr.main-row').length) + index + 1}${expandIcon}</td>
                                 <td class="col-cs-datetime">${item.dispatchDate}</td>
                                 <td class="truncate-text col-cs-client" title="${item.client}">${item.client}</td>
                                 <td class="truncate-text" title="${item.event}">${item.event}</td>
                                 <td class="truncate-text" title="${item.productName}">${item.productName}</td>
-                        <td class="col-cs-price">${item.unitPrice.toLocaleString()}</td>
-                        <td class="col-cs-expiry">${expiryDateHtml}</td>
-                        <td class="col-cs-status">${statusBadge}</td>
-                        <td class="col-cs-phone" title="${item.recipientPhone}">***-****-${item.recipientPhone.slice(-4)}</td>
-                        <td class="col-cs-coupon" title="${item.couponNumber}">${item.couponNumber.slice(0, -6)}******</td>
-                        <td class="col-cs-action">
+                                <td class="col-cs-price">${item.unitPrice.toLocaleString()}</td>
+                                <td class="col-cs-expiry">${expiryDateHtml}</td>
+                                <td class="col-cs-status">${statusBadge}</td>
+                                <td class="col-cs-phone" title="${item.recipientPhone}">***-****-${item.recipientPhone.slice(-4)}</td>
+                                <td class="col-cs-coupon" title="${item.couponNumber}">${item.couponNumber.slice(0, -6)}******</td>
+                                <td class="col-cs-action">
                                     <div class="btn-group" role="group">
                                         <button class="btn btn-sm ${buttonClass}" onclick="showCsConfirmModal('재발송', '${item.couponNumber} 쿠폰을 재발송 하시겠습니까?', () => showSuccessModal('재발송 처리되었습니다.'))" ${disabledAttribute}>재발송</button>
                                         <button class="btn btn-sm ${buttonClass}" onclick="showCsConfirmModal('쿠폰폐기', '${item.couponNumber} 쿠폰을 폐기 하시겠습니까?', () => { item.couponStatus = '폐기'; searchBtn.click(); showSuccessModal('쿠폰이 폐기되었습니다.'); })" ${disabledAttribute}>쿠폰폐기</button>
@@ -370,10 +404,47 @@
                                 </td>
                             </tr>
                         `;
-                    }).join('');
-                    tableBody.innerHTML += rowsHtml;
+
+                        // History Row (if exists)
+                        if (hasHistory) {
+                            rowsHtml += `
+                                <tr>
+                                    <td colspan="11" class="p-0" style="border: none;">
+                                        <div id="${historyId}" class="collapse">
+                                            <div class="p-3" style="background-color: #f8f9fa;">
+                                                <h6 class="mb-2"><i class="fas fa-history me-2"></i>CS 처리 이력</h6>
+                                                <table class="table table-sm table-bordered bg-white mb-0">
+                                                    <thead class="table-light">
+                                                        <tr>
+                                                            <th style="width: 150px;">처리일시</th>
+                                                            <th style="width: 100px;">처리유형</th>
+                                                            <th>상담 메모</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        ${item.history.map(h => `
+                                                            <tr>
+                                                                <td>${h.date}</td>
+                                                                <td>${h.type}</td>
+                                                                <td class="text-start">${h.memo}</td>
+                                                            </tr>
+                                                        `).join('')}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `;
+                        }
+                    });
+                    if (append) { // 무한 스크롤 시
+                        tableBody.insertAdjacentHTML('beforeend', rowsHtml);
+                    } else { // 최초 로드 또는 검색 시
+                        tableBody.innerHTML = rowsHtml;
+                    }
                 } else if (!append) {
-                    tableBody.innerHTML = '<tr><td colspan="11">조회된 결과가 없습니다.</td></tr>';
+                    tableBody.innerHTML = '<tr><td colspan="12">조회된 결과가 없습니다.</td></tr>';
                 }
 
                 const totalCount = displayedResults.length;
