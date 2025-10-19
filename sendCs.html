@@ -511,8 +511,9 @@
                     return item.client.toLowerCase().includes(searchTerm) ||
                            item.event.toLowerCase().includes(searchTerm) ||
                            item.productName.toLowerCase().includes(searchTerm) ||
-                           item.recipientPhone.includes(searchTerm) ||
-                           item.couponNumber.includes(searchTerm);
+                           item.recipientPhone.replace(/-/g, '').includes(searchTerm) ||
+                           item.couponNumber.includes(searchTerm) ||
+                           item.couponStatus.toLowerCase().includes(searchTerm);
                 });
                 displayedResults = sortData(filtered, sortState.key, sortState.direction);
                 renderTable(displayedResults.slice(0, ROWS_PER_LOAD));
