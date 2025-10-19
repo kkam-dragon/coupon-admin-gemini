@@ -64,7 +64,7 @@
                             <th class="col-cs-status" data-sortable data-sort-key="couponStatus">쿠폰상태 <i class="sort-icon fas fa-sort"></i></th>
                             <th class="col-cs-phone">휴대폰번호</th>
                             <th class="col-cs-coupon">쿠폰번호</th>
-                            <th class="col-cs-action">CS처리</th>
+                            <th class="col-cs-action" style="width: 290px; min-width: 290px;">CS처리</th>
                         </tr>
                     </thead>
                     <tbody id="resultsTableBody">
@@ -93,6 +93,10 @@
                 </div>
                 <div class="modal-body text-center py-4">
                     <p class="h5" id="csActionModalBody"></p>
+                    <div class="mt-3 px-3">
+                        <label for="csActionNotes" class="form-label text-start w-100">상담 메모 (선택)</label>
+                        <textarea class="form-control" id="csActionNotes" rows="3" placeholder="필요 시 상담 내용을 기록하세요."></textarea>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
@@ -137,6 +141,10 @@
                         <label for="newPhoneNumber" class="form-label">변경할 휴대폰 번호</label>
                         <input type="text" id="newPhoneNumber" class="form-control" placeholder="숫자만 입력하세요 (최대 11자리)" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
                     </div>
+                    <div class="mb-2">
+                        <label for="changePhoneNotes" class="form-label">상담 메모 (선택)</label>
+                        <textarea class="form-control" id="changePhoneNotes" rows="3" placeholder="필요 시 상담 내용을 기록하세요."></textarea>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
@@ -153,6 +161,28 @@
                  <div class="modal-body text-center py-4 text-white">
                     <i class="fas fa-check-circle fa-3x mb-3"></i>
                     <p class="h5" id="successModalBody"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Etc CS Modal -->
+    <div class="modal fade" id="etcCsModal" tabindex="-1" aria-labelledby="etcCsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="etcCsModalLabel">기타 CS 등록</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="etcCsNotes" class="form-label">상담 내용</label>
+                        <textarea class="form-control" id="etcCsNotes" rows="5" placeholder="상담 내용을 입력하세요."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                    <button type="button" class="btn btn-primary" id="etcCsSaveBtn">저장</button>
                 </div>
             </div>
         </div>
@@ -296,8 +326,9 @@
                         <td class="col-cs-action">
                                     <div class="btn-group" role="group">
                                         <button class="btn btn-sm ${buttonClass}" onclick="showCsConfirmModal('재발송', '${item.couponNumber} 쿠폰을 재발송 하시겠습니까?', () => showSuccessModal('재발송 처리되었습니다.'))" ${disabledAttribute}>재발송</button>
-                                        <button class="btn btn-sm ${buttonClass}" onclick="showCsConfirmModal('쿠폰폐기', '${item.couponNumber} 쿠폰을 폐기 하시겠습니까?', () => showSuccessModal('쿠폰이 폐기되었습니다.'))" ${disabledAttribute}>쿠폰폐기</button>
+                                        <button class="btn btn-sm ${buttonClass}" onclick="showCsConfirmModal('쿠폰폐기', '${item.couponNumber} 쿠폰을 폐기 하시겠습니까?', () => { item.couponStatus = '폐기'; searchBtn.click(); showSuccessModal('쿠폰이 폐기되었습니다.'); })" ${disabledAttribute}>쿠폰폐기</button>
                                         <button class="btn btn-sm ${buttonClass}" onclick="showChangePhoneModal('${item.couponNumber}', '${item.recipientPhone}')" ${disabledAttribute}>번호변경</button>
+                                        <button class="btn btn-sm ${buttonClass}" onclick="showEtcCsModal('${item.couponNumber}')" ${disabledAttribute}>기타</button>
                                     </div>
                                 </td>
                             </tr>
@@ -430,6 +461,7 @@
             const csActionModalEl = document.getElementById('csActionModal');
             const csActionModal = new bootstrap.Modal(csActionModalEl);
             const csActionModalLabel = document.getElementById('csActionModalLabel');
+            const csActionNotes = document.getElementById('csActionNotes');
             const csActionModalBody = document.getElementById('csActionModalBody');
             const csActionConfirmBtn = document.getElementById('csActionConfirmBtn');
 
@@ -447,12 +479,16 @@
             window.showCsConfirmModal = (title, message, onConfirm) => {
                 csActionModalLabel.textContent = title;
                 csActionModalBody.textContent = message;
+                csActionNotes.value = ''; // 메모 초기화
                 confirmCallback = onConfirm;
                 csActionModal.show();
             };
 
             csActionConfirmBtn.addEventListener('click', () => {
                 if (typeof confirmCallback === 'function') {
+                    const notes = csActionNotes.value.trim();
+                    console.log(`CS Action Confirmed with notes: ${notes}`); // 메모 내용 콘솔 출력
+
                     csActionConfirmBtn.dataset.confirmed = 'true'; // 확인 버튼이 눌렸음을 표시
                     confirmCallback();
                 }
@@ -470,6 +506,7 @@
             const changePhoneModal = new bootstrap.Modal(changePhoneModalEl);
             const currentPhoneNumberEl = document.getElementById('currentPhoneNumber');
             const newPhoneNumberEl = document.getElementById('newPhoneNumber');
+            const changePhoneNotes = document.getElementById('changePhoneNotes');
             const changePhoneConfirmBtn = document.getElementById('changePhoneConfirmBtn');
             let currentCouponNumber = null;
             let originalPhoneNumber = null; // 원본 번호 저장을 위한 변수 추가
@@ -483,11 +520,13 @@
                 // 현재 번호 마스킹 처리
                 currentPhoneNumberEl.value = `***-****-${originalPhone.slice(-4)}`;
                 newPhoneNumberEl.value = ''; // 입력 필드 초기화
+                changePhoneNotes.value = ''; // 메모 초기화
                 changePhoneModal.show();
             };
 
             changePhoneConfirmBtn.addEventListener('click', () => {
                 const newPhone = newPhoneNumberEl.value.trim();
+                const notes = changePhoneNotes.value.trim();
                 if (newPhone.length < 10 || newPhone.length > 11) {
                     alert('휴대폰 번호를 10~11자리로 정확히 입력해주세요.');
                     newPhoneNumberEl.focus();
@@ -514,8 +553,8 @@
                     '번호 변경 확인', 
                     `'${newPhone}' 번호로 변경하시겠습니까?`, 
                     () => {
-                        // TODO: 향후 DB 업데이트 로직 구현
-                        // DB 업데이트 예시: updatePhoneNumber(currentCouponNumber, newPhone);
+                        // TODO: 향후 DB 업데이트 로직 구현 (메모 포함)
+                        // 예: updatePhoneNumber(currentCouponNumber, newPhone, notes);
                         // 예: updatePhoneNumber(currentCouponNumber, newPhone);
                         console.log(`쿠폰번호 ${currentCouponNumber}의 휴대폰 번호를 ${newPhone}(으)로 변경 요청`);
                         changePhoneModal.hide();
@@ -549,6 +588,29 @@
                 }
             });
 
+            // 기타 CS 모달 관련 로직
+            const etcCsModalEl = document.getElementById('etcCsModal');
+            const etcCsModal = new bootstrap.Modal(etcCsModalEl);
+            const etcCsNotes = document.getElementById('etcCsNotes');
+            const etcCsSaveBtn = document.getElementById('etcCsSaveBtn');
+            let etcCsCouponNumber = null;
+
+            window.showEtcCsModal = (couponNumber) => {
+                etcCsCouponNumber = couponNumber;
+                etcCsNotes.value = '';
+                etcCsModal.show();
+            };
+
+            etcCsSaveBtn.addEventListener('click', () => {
+                const notes = etcCsNotes.value.trim();
+                if (!notes) {
+                    alert('상담 내용을 입력해주세요.');
+                    return;
+                }
+                console.log(`기타 CS 저장. 쿠폰번호: ${etcCsCouponNumber}, 내용: ${notes}`);
+                etcCsModal.hide();
+                showSuccessModal('CS 내용이 저장되었습니다.');
+            });
         });
     </script>
 </body>
