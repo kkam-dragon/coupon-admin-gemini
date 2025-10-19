@@ -474,6 +474,9 @@
             let originalPhoneNumber = null; // 원본 번호 저장을 위한 변수 추가
 
             window.showChangePhoneModal = (couponNumber, originalPhone) => {
+                // 모달 상태 초기화
+                csActionModalEl.dataset.source = '';
+
                 currentCouponNumber = couponNumber;
                 originalPhoneNumber = originalPhone.replace(/-/g, ''); // 하이픈 제거 후 저장
                 // 현재 번호 마스킹 처리
@@ -502,6 +505,9 @@
 
                 changePhoneModal.hide(); // 확인 모달을 띄우기 전에 현재 모달을 먼저 닫습니다.
 
+                // '번호 변경'에서 온 확인 모달임을 표시
+                csActionModalEl.dataset.source = 'changePhone';
+
                 // 재사용 가능한 csActionModal을 사용
                 showCsConfirmModal(
                     '번호 변경 확인', 
@@ -520,10 +526,12 @@
             // '번호 변경 확인' 모달(csActionModal)이 닫힐 때, '번호 변경' 모달(changePhoneModal)을 다시 띄워줍니다.
             // 단, 사용자가 '확인'을 눌러 콜백이 실행된 경우는 제외합니다.
             csActionModalEl.addEventListener('hidden.bs.modal', function (event) {
-                if (csActionConfirmBtn.dataset.confirmed !== 'true') {
+                // '번호 변경'에서 시작된 확인 모달이었고, 사용자가 '취소'를 눌렀을 때만 실행
+                if (csActionModalEl.dataset.source === 'changePhone' && csActionConfirmBtn.dataset.confirmed !== 'true') {
                     changePhoneModal.show(); // '취소'를 눌렀을 때만 다시 띄움
                 }
                 delete csActionConfirmBtn.dataset.confirmed; // 상태 초기화
+                csActionModalEl.dataset.source = ''; // 소스 상태 초기화
             });
 
             // '알림' 모달(alertModal)이 닫힐 때, '번호 변경' 모달(changePhoneModal)을 다시 띄워줍니다.
