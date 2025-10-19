@@ -61,7 +61,7 @@
                             <th data-sortable data-sort-key="productName">상품명 <i class="sort-icon fas fa-sort"></i></th>
                             <th class="col-cs-price">정상단가</th>
                             <th class="col-cs-expiry" data-sortable data-sort-key="expiryDate">유효기간 <i class="sort-icon fas fa-sort"></i></th>
-                            <th class="col-cs-status" data-sortable data-sort-key="exchangeStatus">교환상태 <i class="sort-icon fas fa-sort"></i></th>
+                            <th class="col-cs-status" data-sortable data-sort-key="couponStatus">쿠폰상태 <i class="sort-icon fas fa-sort"></i></th>
                             <th class="col-cs-phone">휴대폰번호</th>
                             <th class="col-cs-coupon">쿠폰번호</th>
                             <th class="col-cs-action">CS처리</th>
@@ -179,7 +179,7 @@
 
             // C/S 화면용 샘플 데이터
             let allCsData = Array.from({ length: 50 }, (_, i) => {
-                const statusOptions = ['교환완료', '미교환'];
+                const statusOptions = ['교환', '미교환', '폐기']; // '폐기' 상태 추가, '교환완료' -> '교환'
                 const clientOptions = ['A고객사', 'B고객사', 'C고객사'];
                 const eventOptions = ['신규가입 이벤트', '가정의달 이벤트', '출석체크 이벤트'];
                 const productOptions = ['스타벅스 아메리카노', 'BBQ 황금올리브치킨', 'GS25 5천원권'];
@@ -196,7 +196,7 @@
                     expiryDate: i % 3 === 0 
                         ? new Date(new Date().setMonth(new Date().getMonth() - 2)).toISOString().split('T')[0] 
                         : new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
-                    exchangeStatus: statusOptions[i % statusOptions.length],
+                    couponStatus: statusOptions[i % statusOptions.length], // 필드명 및 값 변경
                     recipientPhone: `010-${String(1000 + i).padStart(4, '0')}-${String(5000 + i).padStart(4, '0')}`,
                     couponNumber: (BigInt("910116698170") + BigInt(i)).toString(),
                 };
@@ -213,7 +213,7 @@
                     productName: '[스타벅스]부드러운 디저트(ICE)(아이스 카페 아메리카노 2잔+부드러운 생크림 카스텔라)',
                     unitPrice: 13500,
                     expiryDate: '2025-12-24',
-                    exchangeStatus: i % 2 === 0 ? '교환완료' : '미교환',
+                    couponStatus: i % 2 === 0 ? '교환' : '미교환',
                     recipientPhone: '010-9696-0524',
                     couponNumber: (BigInt("910116698170") + BigInt(i)).toString(),
                 };
@@ -231,7 +231,7 @@
                     productName: '[스타벅스]아이스 카페 아메리카노 T',
                     unitPrice: 4500,
                     expiryDate: new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString().split('T')[0], // 한 달 전 날짜로 만료시킴
-                    exchangeStatus: '미교환',
+                    couponStatus: '미교환',
                     recipientPhone: '010-9696-0524',
                     couponNumber: (BigInt("910116700000") + BigInt(i)).toString(), // 다른 쿠폰 번호 대역
                 };
@@ -259,10 +259,11 @@
                 if (data.length > 0) {
                     const rowsHtml = data.map((item, index) => {
                         let statusBadge;
-                        switch (item.exchangeStatus) {
-                            case '교환완료': statusBadge = '<span class="badge bg-success">교환완료</span>'; break;
+                        switch (item.couponStatus) {
+                            case '교환': statusBadge = '<span class="badge bg-success">교환</span>'; break;
                             case '미교환': statusBadge = '<span class="badge bg-secondary">미교환</span>'; break;
-                            default: statusBadge = `<span class="badge bg-light text-dark">${item.exchangeStatus}</span>`; break;
+                            case '폐기': statusBadge = '<span class="badge bg-danger">폐기</span>'; break;
+                            default: statusBadge = `<span class="badge bg-light text-dark">${item.couponStatus}</span>`; break;
                         }
 
                 // 유효기간 만료 처리
@@ -276,7 +277,7 @@
                 }
 
                 // CS 처리 버튼 비활성화 조건
-                const isCsDisabled = isExpired || item.exchangeStatus === '교환완료';
+                const isCsDisabled = isExpired || item.couponStatus === '교환' || item.couponStatus === '폐기';
                 const buttonClass = isCsDisabled ? 'btn-outline-secondary' : 'btn-dark';
                 const disabledAttribute = isCsDisabled ? 'disabled' : '';
 
