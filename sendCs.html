@@ -386,6 +386,16 @@
                 updateSortIcons();
             });
 
+            // 조회 조건 입력창에서 Enter 키 누르면 조회 실행
+            [queryCouponNumberEl, queryPhoneNumberEl].forEach(input => {
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault(); // 폼의 기본 제출 동작 방지
+                        searchBtn.click(); // 조회 버튼 클릭
+                    }
+                });
+            });
+
             tableSearchInput.addEventListener('input', function() {
                 const searchTerm = this.value.toLowerCase();
                 const filtered = currentResults.filter(item => {
